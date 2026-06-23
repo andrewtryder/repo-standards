@@ -193,6 +193,38 @@ OPEN_SOURCE_LICENSES = {
     "isc",
 }
 
+CLOSED_LICENSES = {"proprietary", "none", "unlicensed"}
+
+LICENSE_CANONICAL = {
+    "mit": "MIT",
+    "apache-2.0": "Apache-2.0",
+    "bsd-2-clause": "BSD-2-Clause",
+    "bsd-3-clause": "BSD-3-Clause",
+    "mpl-2.0": "MPL-2.0",
+    "gpl-3.0": "GPL-3.0",
+    "lgpl-3.0": "LGPL-3.0",
+    "agpl-3.0": "AGPL-3.0",
+    "isc": "ISC",
+    "proprietary": "proprietary",
+    "none": "none",
+}
+
+FORMAT_TOUCHED_CANDIDATES = {
+    "rulesync.jsonc",
+    ".repo-policy.yml",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".editorconfig",
+}
+
+FORMAT_EXISTING_DOC_CANDIDATES = (
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+)
+
 PRIMARY_ACTION_TYPES = frozenset({"CREATE", "UPDATE", "MERGE", "BLOCK"})
 
 
@@ -260,6 +292,14 @@ class MigrationSummary:
     assessment_ran: bool = False
     assessment_result: str = "skipped"
     assessment_detail: str = ""
+    policy_visibility: str = ""
+    policy_license: str = ""
+    visibility_source: str = ""
+    license_source: str = ""
+    format_touched: bool = False
+    format_existing_docs: bool = False
+    formatting_result: str = "skipped"
+    touched_paths: list[str] = field(default_factory=list)
 
     def by_type(self, action_type: ActionType) -> list[Action]:
         return [a for a in self.actions if a.action == action_type]
@@ -459,8 +499,188 @@ def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
     return commands
 
 
+@dataclass
+class PolicyFields:
+    visibility: str
+    license: str
+    visibility_source: str
+    license_source: str
+
+
+def canonical_license(value: str) -> str:
+    normalized = value.strip().lower()
+    return LICENSE_CANONICAL.get(normalized, value.strip())
+
+
+def parse_existing_policy(repo: Path) -> tuple[str | None, str | None]:
+    policy = repo / ".repo-policy.yml"
+    if not policy.is_file():
+        return None, None
+    text = read_text(policy)
+    visibility = None
+    license_value = None
+    vis_match = re.search(r'(?m)^visibility:\s*["\']?([^"\'\n#]+)', text)
+    if vis_match:
+        visibility = vis_match.group(1).strip().lower()
+    lic_match = re.search(r'(?m)^license:\s*["\']?([^"\'\n#]+)', text)
+    if lic_match:
+        license_value = canonical_license(lic_match.group(1))
+    return visibility, license_value
+
+
+def parse_github_remote_slug(repo: Path) -> str | None:
+    try:
+        completed = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
+    if completed.returncode != 0:
+        return None
+    url = completed.stdout.strip()
+    if not url:
+        return None
+    patterns = [
+        r"github\.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)",
+        r"git@github\.com:(?P<owner>[^/]+)/(?P<repo>[^/.]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return f"{match.group('owner')}/{match.group('repo')}"
+    return None
+
+
+def infer_github_visibility(repo: Path) -> tuple[str | None, str]:
+    slug = parse_github_remote_slug(repo)
+    if not slug:
+        return None, "unavailable"
+    for json_fields in ("isPrivate", "visibility"):
+        try:
+            completed = subprocess.run(
+                ["gh", "repo", "view", slug, "--json", json_fields],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            return None, "unavailable"
+        if completed.returncode != 0:
+            continue
+        try:
+            data = json.loads(completed.stdout)
+        except json.JSONDecodeError:
+            continue
+        if json_fields == "isPrivate":
+            if data.get("isPrivate") is True:
+                return "private", "github"
+            if data.get("isPrivate") is False:
+                return "public", "github"
+        else:
+            visibility = str(data.get("visibility", "")).lower()
+            if visibility in {"private", "public", "internal"}:
+                return "private" if visibility != "public" else "public", "github"
+    return None, "unavailable"
+
+
+def resolve_policy_fields(
+    repo: Path,
+    mode: str,
+    cli_visibility: str | None,
+    cli_license: str | None,
+) -> PolicyFields:
+    existing_visibility, existing_license = parse_existing_policy(repo)
+
+    if cli_visibility:
+        visibility = cli_visibility.lower()
+        visibility_source = "cli"
+    elif existing_visibility:
+        visibility = existing_visibility
+        visibility_source = "existing-policy"
+    else:
+        inferred, _source = infer_github_visibility(repo)
+        if inferred:
+            visibility = inferred
+            visibility_source = "github"
+        elif mode == "existing":
+            visibility = "private"
+            visibility_source = "default"
+        else:
+            visibility = "public"
+            visibility_source = "default"
+
+    if cli_license:
+        license_value = canonical_license(cli_license)
+        license_source = "cli"
+    elif existing_license and not cli_license:
+        license_value = existing_license
+        license_source = "existing-policy"
+    elif visibility_source == "github":
+        license_value = "proprietary" if visibility == "private" else "MIT"
+        license_source = "github"
+    elif mode == "existing":
+        license_value = "proprietary"
+        license_source = "default"
+    else:
+        license_value = "MIT"
+        license_source = "default"
+
+    return PolicyFields(
+        visibility=visibility,
+        license=license_value,
+        visibility_source=visibility_source,
+        license_source=license_source,
+    )
+
+
+def parse_policy_from_text(text: str) -> tuple[str | None, str | None]:
+    visibility = None
+    license_value = None
+    vis_match = re.search(r'(?m)^visibility:\s*["\']?([^"\'\n#]+)', text)
+    if vis_match:
+        visibility = vis_match.group(1).strip().lower()
+    lic_match = re.search(r'(?m)^license:\s*["\']?([^"\'\n#]+)', text)
+    if lic_match:
+        license_value = canonical_license(lic_match.group(1))
+    return visibility, license_value
+
+
+def license_warning_needed(
+    visibility: str | None, license_value: str | None, has_license_file: bool
+) -> tuple[bool, str]:
+    if has_license_file or not license_value:
+        return False, ""
+    lic = license_value.strip().lower()
+    vis = (visibility or "private").strip().lower()
+    if lic in CLOSED_LICENSES:
+        if vis == "public":
+            return True, (
+                ".repo-policy.yml declares a public repository with a closed license "
+                f"({license_value}); review visibility and license before merge."
+            )
+        return False, ""
+    if lic in OPEN_SOURCE_LICENSES:
+        if vis == "private":
+            return True, (
+                f".repo-policy.yml declares license {license_value} but LICENSE/LICENSE.md "
+                "is missing. Add a license intentionally or adjust .repo-policy.yml."
+            )
+        return True, (
+            f".repo-policy.yml declares license {license_value} but LICENSE/LICENSE.md "
+            "is missing. Add a license intentionally or adjust .repo-policy.yml."
+        )
+    return False, ""
+
+
 def render_repo_policy_template(
-    template_text: str, repo: Path, detection: dict[str, Any]
+    template_text: str,
+    repo: Path,
+    detection: dict[str, Any],
+    policy_fields: PolicyFields,
 ) -> str:
     text = template_text
     repo_name = repo.name
@@ -471,6 +691,20 @@ def render_repo_policy_template(
     text = re.sub(r"^name: .*$", f"name: {repo_name}", text, count=1, flags=re.MULTILINE)
     text = re.sub(
         r"^profile: .*$", f"profile: {profile}", text, count=1, flags=re.MULTILINE
+    )
+    text = re.sub(
+        r"^visibility: .*$",
+        f"visibility: {policy_fields.visibility}",
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r"^license: .*$",
+        f"license: {policy_fields.license}",
+        text,
+        count=1,
+        flags=re.MULTILINE,
     )
     if package_manager != "unknown":
         text = re.sub(
@@ -706,33 +940,41 @@ def plan_repo_policy(
     detection: dict[str, Any],
     selected_profile: str,
     force: bool,
+    policy_fields: PolicyFields,
 ) -> None:
     rel = ".repo-policy.yml"
     policy_source = policy_template_path(standards, selected_profile)
     target = repo / rel
     template_text = read_text(policy_source)
     det = {**detection, "recommended_profile": selected_profile, "profile": selected_profile}
-    rendered = render_repo_policy_template(template_text, repo, det)
+    rendered = render_repo_policy_template(template_text, repo, det, policy_fields)
     summary.rendered_repo_policy = rendered
+    summary.policy_visibility = policy_fields.visibility
+    summary.policy_license = policy_fields.license
+    summary.visibility_source = policy_fields.visibility_source
+    summary.license_source = policy_fields.license_source
 
     if not target.is_file():
-        summary.actions.append(
-            Action("CREATE", rel, f"From {policy_source.name} with repo-specific values.")
+        add_action(
+            summary,
+            Action("CREATE", rel, f"From {policy_source.name} with repo-specific values."),
         )
         return
 
     if target.read_text(encoding="utf-8") == rendered:
-        summary.actions.append(Action("SKIP", rel, "Already matches rendered policy."))
+        add_action(summary, Action("SKIP", rel, "Already matches rendered policy."))
         return
 
     if force:
-        summary.actions.append(Action("UPDATE", rel, "Overwrite .repo-policy.yml with --force."))
+        add_action(summary, Action("UPDATE", rel, "Overwrite .repo-policy.yml with --force."))
     else:
-        summary.actions.append(
-            Action("SKIP", rel, ".repo-policy.yml is authoritative; review manually.")
+        add_action(
+            summary,
+            Action("SKIP", rel, ".repo-policy.yml is authoritative; review manually."),
         )
-        summary.actions.append(
-            Action("WARN", rel, "Existing .repo-policy.yml preserved; use --force to overwrite.")
+        add_action(
+            summary,
+            Action("WARN", rel, "Existing .repo-policy.yml preserved; use --force to overwrite."),
         )
 
 
@@ -898,37 +1140,89 @@ def plan_license_warning(summary: MigrationSummary, repo: Path) -> None:
     if not policy_text:
         return
 
-    match = re.search(r'(?m)^license:\s*["\']?([^"\'\n#]+)', policy_text)
-    if not match:
+    visibility, license_value = parse_policy_from_text(policy_text)
+    if summary.policy_visibility:
+        visibility = summary.policy_visibility
+    if summary.policy_license:
+        license_value = summary.policy_license
+
+    has_license_file = (repo / "LICENSE").is_file() or (repo / "LICENSE.md").is_file()
+    needed, message = license_warning_needed(visibility, license_value, has_license_file)
+    if needed:
+        add_action(summary, Action("WARN", "LICENSE", message))
+
+
+def plan_policy_source_warnings(summary: MigrationSummary) -> None:
+    if summary.visibility_source == "default" or summary.license_source == "default":
+        add_action(
+            summary,
+            Action(
+                "WARN",
+                ".repo-policy.yml",
+                f"visibility/license defaulted to {summary.policy_visibility}/"
+                f"{summary.policy_license}; review before merge.",
+            ),
+        )
+        if summary.visibility_source == "default":
+            add_action(
+                summary,
+                Action(
+                    "WARN",
+                    ".repo-policy.yml",
+                    "Could not infer GitHub visibility; defaulted to private/proprietary "
+                    "for existing repository migration.",
+                ),
+            )
+
+
+def collect_touched_format_paths(summary: MigrationSummary) -> list[str]:
+    paths: list[str] = []
+    for action in summary.actions:
+        if action.action not in {"CREATE", "UPDATE"}:
+            continue
+        if action.path in FORMAT_TOUCHED_CANDIDATES:
+            paths.append(action.path)
+        elif action.path.startswith(".github/workflows/") and action.path.endswith(
+            (".yml", ".yaml")
+        ):
+            paths.append(action.path)
+    return sorted(set(paths))
+
+
+def collect_existing_doc_paths(repo: Path) -> list[str]:
+    paths: list[str] = []
+    for rel in FORMAT_EXISTING_DOC_CANDIDATES:
+        if (repo / rel).is_file():
+            paths.append(rel)
+    docs_dir = repo / "docs"
+    if docs_dir.is_dir():
+        for path in sorted(docs_dir.rglob("*.md")):
+            paths.append(path.relative_to(repo).as_posix())
+    return sorted(set(paths))
+
+
+def plan_formatting_recommendations(summary: MigrationSummary, repo: Path) -> None:
+    language = summary.detection.get("language")
+    if language != "typescript":
         return
 
-    license_value = match.group(1).strip().lower()
-    if license_value not in OPEN_SOURCE_LICENSES:
-        return
-
-    if (repo / "LICENSE").is_file() or (repo / "LICENSE.md").is_file():
-        return
-
-    add_action(
-        summary,
-        Action(
-            "WARN",
-            "LICENSE",
-            f".repo-policy.yml declares license {license_value} but LICENSE/LICENSE.md "
-            "is missing. Add a license intentionally or adjust .repo-policy.yml.",
-        ),
-    )
+    doc_paths = collect_existing_doc_paths(repo)
+    if doc_paths:
+        summary.recommendations.append(
+            "Run with --format-existing-docs if existing Markdown files fail Prettier "
+            "after standards checks are introduced."
+        )
+    if (repo / "CHANGELOG.md").is_file():
+        summary.recommendations.append(
+            "CHANGELOG.md exists; if format check fails, run "
+            "`npx prettier --write CHANGELOG.md` or rerun migration with "
+            "--format-existing-docs."
+        )
 
 
-def should_format_generated(language: str, apply_mode: bool, skip_format: bool) -> bool:
-    if skip_format or not apply_mode:
-        return False
-    return language == "typescript"
-
-
-def format_generated_json_files(repo: Path, paths: list[str]) -> str:
+def run_prettier(repo: Path, paths: list[str]) -> tuple[str, bool]:
     if not paths:
-        return ""
+        return "", True
     try:
         completed = subprocess.run(
             ["npx", "prettier", "--write", *paths],
@@ -938,13 +1232,50 @@ def format_generated_json_files(repo: Path, paths: list[str]) -> str:
             check=False,
         )
     except OSError as exc:
-        return f"Prettier unavailable: {exc}"
+        return f"Prettier unavailable: {exc}", False
     output = "\n".join(
         part for part in (completed.stdout, completed.stderr) if part
     ).strip()
-    if completed.returncode != 0:
-        return output or "Prettier failed"
-    return output
+    return output, completed.returncode == 0
+
+
+def apply_formatting(
+    summary: MigrationSummary,
+    repo: Path,
+    *,
+    language: str,
+    apply_mode: bool,
+    skip_format: bool,
+    format_touched: bool,
+    format_existing_docs: bool,
+) -> None:
+    if skip_format or not apply_mode:
+        summary.formatting_result = "skipped"
+        return
+    if language != "typescript":
+        summary.formatting_result = "skipped"
+        return
+
+    paths: list[str] = []
+    if format_touched:
+        paths.extend(collect_touched_format_paths(summary))
+    if format_existing_docs:
+        paths.extend(collect_existing_doc_paths(repo))
+    paths = sorted(set(paths))
+    if not paths:
+        summary.formatting_result = "skipped"
+        return
+
+    output, ok = run_prettier(repo, paths)
+    summary.touched_paths = paths
+    if not ok:
+        summary.formatting_result = "warned"
+        add_action(
+            summary,
+            Action("WARN", "formatting", f"Prettier formatting incomplete: {output}"),
+        )
+    else:
+        summary.formatting_result = "passed"
 
 
 def tracked_coverage_artifacts(repo: Path) -> list[str]:
@@ -1323,6 +1654,9 @@ def build_plan(
     migrate_existing_agent_rules: bool,
     for_apply: bool,
     will_run_rulesync: bool,
+    policy_fields: PolicyFields,
+    format_touched: bool,
+    format_existing_docs: bool,
 ) -> MigrationSummary:
     detection = detect_repo(repo, standards)
     selected_profile = profile or detection["recommended_profile"]
@@ -1347,11 +1681,16 @@ def build_plan(
         replace_check_workflows=replace_check_workflows,
         migrate_existing_agent_rules=migrate_existing_agent_rules,
         will_run_rulesync=will_run_rulesync,
+        format_touched=format_touched,
+        format_existing_docs=format_existing_docs,
     )
 
     summary.workflow_classifications = classify_all_workflows(repo)
 
-    plan_repo_policy(summary, standards, repo, detection, selected_profile, force)
+    plan_repo_policy(
+        summary, standards, repo, detection, selected_profile, force, policy_fields
+    )
+    plan_policy_source_warnings(summary)
     plan_license_warning(summary, repo)
 
     plan_file_copy(
@@ -1452,6 +1791,8 @@ def build_plan(
         Action("WARN", repo.as_posix(), "Package manager preserved.")
     )
 
+    plan_formatting_recommendations(summary, repo)
+
     if mode == "new":
         summary.actions.append(
             Action("WARN", repo.as_posix(), "Review profile before first commit.")
@@ -1467,6 +1808,7 @@ def build_analysis(
     mode: str,
     profile: str | None,
     rules_strategy: str,
+    policy_fields: PolicyFields | None = None,
 ) -> MigrationSummary:
     detection = detect_repo(repo, standards)
     selected_profile = profile or detection["recommended_profile"]
@@ -1488,10 +1830,16 @@ def build_analysis(
     )
 
     summary.workflow_classifications = classify_all_workflows(repo)
+    if policy_fields:
+        summary.policy_visibility = policy_fields.visibility
+        summary.policy_license = policy_fields.license
+        summary.visibility_source = policy_fields.visibility_source
+        summary.license_source = policy_fields.license_source
     plan_nvmrc(summary, standards, repo, language, force=False)
     plan_coverage_cleanup(summary, repo, cleanup=False)
     plan_agent_rule_migration(summary, repo, selected_rules, migrate=False)
     plan_license_warning(summary, repo)
+    plan_formatting_recommendations(summary, repo)
     preflight_generated_outputs(
         summary,
         repo,
@@ -1654,24 +2002,6 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
                     target.write_text(text + "\n", encoding="utf-8")
 
 
-def apply_format_generated(
-    summary: MigrationSummary,
-    repo: Path,
-    *,
-    language: str,
-    apply_mode: bool,
-    skip_format: bool,
-) -> None:
-    if not should_format_generated(language, apply_mode, skip_format):
-        return
-    output = format_generated_json_files(repo, ["rulesync.jsonc"])
-    if output and ("failed" in output.lower() or "unavailable" in output.lower()):
-        add_action(
-            summary,
-            Action("WARN", "rulesync.jsonc", f"Prettier format skipped: {output}"),
-        )
-
-
 def run_rulesync(repo: Path) -> tuple[bool, str]:
     try:
         completed = subprocess.run(
@@ -1755,6 +2085,11 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
         f"Cleanup generated artifacts: `{summary.cleanup_generated_artifacts}`",
         f"AI assessment: `{summary.ai_assessment_result}`",
         f"Commit: `{'requested' if summary.commit_requested else 'skipped'}`",
+        f"Visibility source: `{summary.visibility_source or 'n/a'}`",
+        f"License source: `{summary.license_source or 'n/a'}`",
+        f"Formatting touched files: `{summary.format_touched}`",
+        f"Formatting existing docs: `{summary.format_existing_docs}`",
+        f"Formatting result: `{summary.formatting_result}`",
         "",
         "## Detection",
         "",
@@ -1785,6 +2120,29 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
     if summary.recommendations:
         lines.extend(["", "## Recommendations", ""])
         lines.extend(f"- {item}" for item in summary.recommendations)
+
+    formatting_recs = [
+        item
+        for item in summary.recommendations
+        if "CHANGELOG.md" in item or "format-existing-docs" in item
+    ]
+    lines.extend(
+        [
+            "",
+            "## Formatting",
+            "",
+            f"- Touched files formatting: `{summary.formatting_result if summary.format_touched else 'skipped'}`",
+            f"- Existing docs formatting: `{summary.formatting_result if summary.format_existing_docs else 'skipped'}`",
+        ]
+    )
+    if formatting_recs:
+        for item in formatting_recs:
+            lines.append(f"- Recommendation: {item}")
+    elif summary.formatting_result == "skipped":
+        lines.append(
+            "- Recommendation: use `--format-touched` or `--format-existing-docs` when "
+            "Prettier checks fail after migration."
+        )
 
     if summary.workflow_classifications:
         lines.extend(
@@ -1889,6 +2247,14 @@ def summary_to_json(summary: MigrationSummary) -> dict[str, Any]:
         "ai_assessment": summary.ai_assessment,
         "ai_assessment_result": summary.ai_assessment_result,
         "commit_requested": summary.commit_requested,
+        "policy_visibility": summary.policy_visibility,
+        "policy_license": summary.policy_license,
+        "visibility_source": summary.visibility_source,
+        "license_source": summary.license_source,
+        "format_touched": summary.format_touched,
+        "format_existing_docs": summary.format_existing_docs,
+        "formatting_result": summary.formatting_result,
+        "touched_paths": summary.touched_paths,
         "recommendations": summary.recommendations,
         "detection": summary.detection,
         "actions": [
@@ -2023,7 +2389,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-format-generated",
         action="store_true",
-        help="Skip Prettier formatting of generated JSON/JSONC files.",
+        help="Skip Prettier formatting of generated or touched files.",
+    )
+    parser.add_argument(
+        "--format-touched",
+        action="store_true",
+        help="Format migration-touched files with Prettier when available.",
+    )
+    parser.add_argument(
+        "--format-existing-docs",
+        action="store_true",
+        help="Format existing documentation files with Prettier when available.",
+    )
+    parser.add_argument(
+        "--visibility",
+        choices=("public", "private"),
+        default=None,
+        help="Repository visibility for rendered .repo-policy.yml.",
+    )
+    parser.add_argument(
+        "--license",
+        choices=(
+            "MIT",
+            "Apache-2.0",
+            "BSD-3-Clause",
+            "ISC",
+            "proprietary",
+            "none",
+        ),
+        default=None,
+        help="License for rendered .repo-policy.yml.",
     )
     parser.add_argument(
         "--summary-file",
@@ -2064,6 +2459,9 @@ def main() -> int:
     replace_check = args.replace_check_workflows
     cleanup = args.cleanup_generated_artifacts
     migrate_rules = args.migrate_existing_agent_rules
+    policy_fields = resolve_policy_fields(
+        repo, args.mode, args.visibility, args.license
+    )
 
     if args.analyze_existing:
         summary = build_analysis(
@@ -2072,6 +2470,7 @@ def main() -> int:
             mode=args.mode,
             profile=args.profile,
             rules_strategy=args.rules_strategy,
+            policy_fields=policy_fields,
         )
         summary.adoption_level = args.adoption_level
         if args.dry_run_ai_summary:
@@ -2111,6 +2510,9 @@ def main() -> int:
         migrate_existing_agent_rules=migrate_rules,
         for_apply=apply_mode,
         will_run_rulesync=will_run_rulesync,
+        policy_fields=policy_fields,
+        format_touched=args.format_touched,
+        format_existing_docs=args.format_existing_docs,
     )
     summary.apply_mode = apply_mode
     summary.interactive = args.interactive
@@ -2177,6 +2579,9 @@ def main() -> int:
             migrate_existing_agent_rules=migrate_rules,
             for_apply=apply_mode,
             will_run_rulesync=will_run_rulesync,
+            policy_fields=policy_fields,
+            format_touched=args.format_touched,
+            format_existing_docs=args.format_existing_docs,
         )
         summary.apply_mode = apply_mode
         summary.interactive = True
@@ -2192,12 +2597,14 @@ def main() -> int:
             return 1
 
         apply_actions(summary, standards, repo)
-        apply_format_generated(
+        apply_formatting(
             summary,
             repo,
             language=summary.detection.get("language", ""),
             apply_mode=True,
             skip_format=args.skip_format_generated,
+            format_touched=args.format_touched,
+            format_existing_docs=args.format_existing_docs,
         )
 
         if summary.cleanup_generated_artifacts and summary.tracked_generated_artifacts:
