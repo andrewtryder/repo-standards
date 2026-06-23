@@ -1,4 +1,4 @@
-|---
+---
 targets: ["*"]
 description: "TypeScript and JavaScript standards"
 globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"]
@@ -21,3 +21,10 @@ Preferred checks:
 - `npm run build`
 
 Use ESLint for linting, TypeScript for typechecking, and Prettier for formatting when configured.
+
+## Related docs
+
+- `docs/profiles.md`
+- `docs/ai-rules-maintenance.md`
+- `docs/detection.md`
+- `docs/deployment/cloudflare.md`

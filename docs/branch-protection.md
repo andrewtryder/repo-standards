@@ -10,6 +10,7 @@ After migrating a repo to the standard, configure branch protection rules on the
 | **AI Rules** | Always | Fails if generated AI/editor files are out of sync with `.rulesync/` source. |
 | **CI** | Always | Runs install, lint, test, coverage, build for the repo profile. |
 | **Docs** | Always | Validates required docs exist and README covers required concepts. |
+| **Docs / AI Rule Sync** | Recommended | Warns when docs/templates/profiles change without AI rule source updates. Promote to required after the rule stabilizes. |
 | **Secret Scan** | Recommended | Scans PR diffs for verified secrets using TruffleHog. Add once it passes consistently. |
 | **Deploy check** | When deploy workflow is configured | Ensures deployment is not broken by standards changes. Deploy workflows are not modified by standard migration. |
 | **Release check** | When Release Please is configured | Ensures release PR creation is working. Release workflows are not modified by standard migration. |

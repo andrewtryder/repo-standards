@@ -45,13 +45,14 @@ In each application repository:
 - `.rulesync/rules/*.md` contains canonical AI/editor rules.
 - Generated AI/editor outputs are committed after running Rulesync.
 
-See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model.
+See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model. For how documentation and AI/editor rules stay aligned, see [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md).
 
 ## Documentation
 
 | Need | Read |
 |---|---|
 | Core concepts | [`docs/concepts.md`](docs/concepts.md) |
+| AI rules maintenance | [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md) |
 | New repo setup | [`docs/new-repository-setup.md`](docs/new-repository-setup.md) |
 | Existing repo migration | [`docs/existing-repository-migration.md`](docs/existing-repository-migration.md) |
 | Profiles | [`docs/profiles.md`](docs/profiles.md) |
