@@ -161,6 +161,8 @@ cp /path/to/repo-standards/templates/workflows/python-ci.yml .github/workflows/c
 cp /path/to/repo-standards/templates/workflows/release-please.simple.yml .github/workflows/release-please.yml
 ```
 
+The AI rules check workflow uses `.nvmrc` when present and falls back to Node 24 for non-Node repositories (for example Python repos that still use Rulesync).
+
 ## Step 9: Add Dependabot
 
 ```bash
@@ -219,7 +221,7 @@ pytest
 ## Step 13: Run the assessor
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/my-new-project \
   --standards /path/to/repo-standards \
   --run-safe-checks

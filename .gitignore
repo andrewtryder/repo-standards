@@ -11,6 +11,6 @@ __pycache__/
 .cursor/
 AGENTS.md
 
-# Generated assessment outputs (keep README)
-assessments/*
-!assessments/README.md
+# Generated assessment outputs
+assessments/generated/*
+!assessments/generated/.gitkeep

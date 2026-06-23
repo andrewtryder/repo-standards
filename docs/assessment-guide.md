@@ -1,6 +1,6 @@
 # Assessment guide
 
-The repo-standards assessor scores a repository's alignment with **Repo Standard v1.3**. Use `assess_repo_standards_migration_v3.py` as the current assessor. This guide explains how to run it and interpret results.
+The repo-standards assessor scores a repository's alignment with **Repo Standard v1.3**. Use `scripts/assess_repo_standards.py` as the current assessor. This guide explains how to run it and interpret results.
 
 For **profile detection** before migration, use the read-only detector instead:
 
@@ -24,7 +24,7 @@ See [`ai-rules-maintenance.md`](ai-rules-maintenance.md) for the governed docs-t
 ### Basic usage
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/application-repo \
   --standards /path/to/repo-standards \
   --base-ref main \
@@ -46,7 +46,7 @@ python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
 Checks file existence, workflow configuration, and `.repo-policy.yml` structure without executing any commands. Safe to run against any repo.
 
 ```bash
-python3 assess_repo_standards_migration_v3.py \
+python3 assess_repo_standards.py \
   --repo /path/to/repo \
   --standards /path/to/repo-standards \
   --base-ref main
@@ -169,7 +169,7 @@ This makes it suitable for use in CI:
 
 ```bash
 # In a workflow or pre-commit hook:
-python3 assess_repo_standards_migration_v3.py \
+python3 assess_repo_standards.py \
   --repo . \
   --standards /path/to/repo-standards \
   --base-ref main \

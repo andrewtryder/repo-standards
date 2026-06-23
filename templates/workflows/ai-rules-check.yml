@@ -19,9 +19,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect Node version source
+        id: node-version
+        shell: bash
+        run: |
+          if [[ -f .nvmrc ]]; then
+            echo "has_nvmrc=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_nvmrc=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.node-version.outputs.has_nvmrc == 'true'
         with:
           node-version-file: ".nvmrc"
+      - uses: actions/setup-node@v4
+        if: steps.node-version.outputs.has_nvmrc != 'true'
+        with:
+          node-version: "24"
       - name: Regenerate AI rules
         run: npx -y rulesync generate
       - name: Fail if generated files are stale

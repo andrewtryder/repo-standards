@@ -23,7 +23,7 @@ During initial migration, repos **copy** templates from `templates/workflows/*.y
 **When to use:** Initial migration, early adoption, repos with low change frequency.
 
 **How to manage drift:**
-- Re-run the assessment script (`scripts/assess_repo_standards_migration_v3.py`) whenever repo-standards changes.
+- Re-run the assessment script (`scripts/assess_repo_standards.py`) whenever repo-standards changes.
 - Compare copied workflows against canonical templates manually or via diff.
 - Subscribe to repo-standards release notes.
 
@@ -43,6 +43,8 @@ The **preferred long-term approach** is to define CI workflows as GitHub reusabl
 
 **When to use:** After the standard is stable, for repos with active development.
 
+Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
+
 ### Reusable workflow caller examples
 
 #### Node CI caller
@@ -61,7 +63,7 @@ permissions:
 
 jobs:
   node-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@main
+    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.3.0
     with:
       node_version: "24"
       install_command: "npm ci"
@@ -89,7 +91,7 @@ permissions:
 
 jobs:
   python-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@main
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.3.0
     with:
       python_version: "3.12"
       install_command: "python -m pip install -r requirements.txt -r requirements-dev.txt"
@@ -99,14 +101,22 @@ jobs:
       coverage_args: "--report-only"
 ```
 
-### Reusable workflow templates
+### Reusable workflow locations
 
-The reusable workflow templates are at:
+| Path | Purpose |
+|---|---|
+| `.github/workflows/*.reusable.yml` | Live reusable workflows callable by downstream repos |
+| `templates/workflows/*.reusable.yml` | Copy/reference templates, if retained |
 
-- `templates/workflows/node-ci.reusable.yml` — reusable Node CI workflow
-- `templates/workflows/python-ci.reusable.yml` — reusable Python CI workflow
+Live callable workflows:
 
-These are designed to be hosted in the repo-standards repo and called from downstream repos.
+- `.github/workflows/node-ci.reusable.yml` — reusable Node CI workflow
+- `.github/workflows/python-ci.reusable.yml` — reusable Python CI workflow
+
+Template copies (for early migration or reference):
+
+- `templates/workflows/node-ci.reusable.yml`
+- `templates/workflows/python-ci.reusable.yml`
 
 ## Summary
 
