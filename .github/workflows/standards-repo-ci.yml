@@ -66,6 +66,15 @@ jobs:
       - name: Build docs site
         run: mkdocs build --strict
 
+      - name: Secret scan template regression check
+        run: |
+          grep -q "extra_args: --results=verified" templates/workflows/secret-scan.yml
+          ! grep -q -- "--no-update" templates/workflows/secret-scan.yml
+          ! grep -q -- "--fail" templates/workflows/secret-scan.yml
+
+      - name: Verify editorconfig template exists
+        run: test -f templates/.editorconfig
+
       - name: Rulesync frontmatter sanity
         run: |
           python3 - <<'PY'

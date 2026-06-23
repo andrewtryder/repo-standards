@@ -181,6 +181,42 @@ globs: ["*"]
 
 """
 
+OPEN_SOURCE_LICENSES = {
+    "mit",
+    "apache-2.0",
+    "bsd-2-clause",
+    "bsd-3-clause",
+    "mpl-2.0",
+    "gpl-3.0",
+    "lgpl-3.0",
+    "agpl-3.0",
+    "isc",
+}
+
+PRIMARY_ACTION_TYPES = frozenset({"CREATE", "UPDATE", "MERGE", "BLOCK"})
+
+
+def has_primary_action(summary: "MigrationSummary", path: str) -> bool:
+    return any(
+        action.path == path and action.action in PRIMARY_ACTION_TYPES
+        for action in summary.actions
+    )
+
+
+def add_action(summary: "MigrationSummary", action: Action) -> None:
+    if action.action in PRIMARY_ACTION_TYPES:
+        summary.actions = [
+            existing
+            for existing in summary.actions
+            if not (
+                existing.path == action.path
+                and existing.action in {"SKIP", "WARN"}
+            )
+        ]
+    elif action.action == "SKIP" and has_primary_action(summary, action.path):
+        return
+    summary.actions.append(action)
+
 
 @dataclass
 class Action:
@@ -501,14 +537,15 @@ def plan_agent_rule_migration(
         rel = f".rulesync/rules/{target_name}"
         target = repo / rel
         if target.is_file():
-            summary.actions.append(Action("SKIP", rel, "Rulesync source already exists."))
+            add_action(summary, Action("SKIP", rel, "Rulesync source already exists."))
         else:
-            summary.actions.append(
+            add_action(
+                summary,
                 Action(
                     "CREATE",
                     rel,
                     f"Migrate generated agent rule from {expected_agent}.",
-                )
+                ),
             )
         summary.migrated_agent_rule_targets.append(target_name)
         summary.selected_rules.append(target_name)
@@ -553,13 +590,15 @@ def plan_check_workflow_replacement(
         if wf["classification"] != "replaceable-check":
             continue
         rel = wf["path"]
+        target_rel = rel if rel.endswith("ci.yml") else ".github/workflows/ci.yml"
+        if has_primary_action(summary, target_rel):
+            continue
         if replace_check_workflows:
             ci_content = (
                 NODE_CI_WORKFLOW
                 if language == "typescript"
                 else PYTHON_CI_WORKFLOW
             )
-            target_rel = rel if rel.endswith("ci.yml") else ".github/workflows/ci.yml"
             plan_inline_file(
                 summary,
                 rel_path=target_rel,
@@ -569,12 +608,21 @@ def plan_check_workflow_replacement(
                 force=force,
             )
         else:
-            summary.actions.append(
+            add_action(
+                summary,
+                Action(
+                    "SKIP",
+                    rel,
+                    "Existing check-only workflow may be replaced after review.",
+                ),
+            )
+            add_action(
+                summary,
                 Action(
                     "WARN",
                     rel,
                     "Existing check-only workflow may be replaced after review.",
-                )
+                ),
             )
 
 
@@ -728,6 +776,39 @@ def existing_generated_cursor_rules(repo: Path) -> list[str]:
     )
 
 
+def rulesync_source_rule_names(repo: Path, selected_rules: list[Path]) -> set[str]:
+    names = {rule.name for rule in selected_rules}
+    rules_dir = repo / ".rulesync" / "rules"
+    if rules_dir.is_dir():
+        names.update(path.name for path in rules_dir.glob("*.md") if path.is_file())
+    return names
+
+
+def agent_output_represented(agent_rel: str, source_names: set[str]) -> bool:
+    gen_name = Path(agent_rel).name
+    if gen_name in source_names:
+        return True
+    mapped = agent_rule_to_rulesync_name(Path(gen_name))
+    if mapped in source_names:
+        return True
+    for source in source_names:
+        if source.startswith("05-") and gen_name == source[3:]:
+            return True
+    return False
+
+
+def cursor_output_represented(cursor_rel: str, source_names: set[str]) -> bool:
+    stem = Path(cursor_rel).stem
+    if f"{stem}.md" in source_names:
+        return True
+    if stem == "conventional-commits" and "05-conventional-commits.md" in source_names:
+        return True
+    for source in source_names:
+        if Path(source).stem == stem:
+            return True
+    return False
+
+
 def preflight_generated_outputs(
     summary: MigrationSummary,
     repo: Path,
@@ -737,69 +818,133 @@ def preflight_generated_outputs(
     for_apply: bool,
     will_run_rulesync: bool,
 ) -> None:
-    expected_agents = expected_generated_agent_rules(selected_rules)
-    expected_cursor = expected_generated_cursor_rules(selected_rules)
+    source_names = rulesync_source_rule_names(repo, selected_rules)
 
     orphaned: list[str] = []
     for rel in existing_generated_agent_rules(repo):
-        if rel not in expected_agents:
-            orphaned.append(rel)
-            summary.existing_generated_outputs.append(rel)
-            summary.actions.append(
-                Action(
-                    "WARN",
-                    rel,
-                    "Existing generated agent rule is not represented in selected "
-                    "Rulesync source and may be removed by Rulesync.",
-                )
-            )
-            summary.recommendations.append(
-                f"Review whether `{rel}` should be migrated into "
-                f"`.rulesync/rules/{Path(rel).name}` before running Rulesync."
-            )
+        if agent_output_represented(rel, source_names):
+            continue
+        if summary.migrate_existing_agent_rules:
+            mapped = agent_rule_to_rulesync_name(Path(rel).name)
+            if mapped in source_names or (repo / ".rulesync" / "rules" / mapped).is_file():
+                continue
+        orphaned.append(rel)
+        summary.existing_generated_outputs.append(rel)
+        add_action(
+            summary,
+            Action(
+                "WARN",
+                rel,
+                "Existing generated agent rule is not represented in selected "
+                "Rulesync source and may be removed by Rulesync.",
+            ),
+        )
+        summary.recommendations.append(
+            f"Review whether `{rel}` should be migrated into "
+            f"`.rulesync/rules/{agent_rule_to_rulesync_name(Path(rel).name)}` "
+            "before running Rulesync."
+        )
 
     for rel in existing_generated_cursor_rules(repo):
-        if rel not in expected_cursor:
-            summary.existing_generated_outputs.append(rel)
-            summary.actions.append(
-                Action(
-                    "WARN",
-                    rel,
-                    "Existing generated Cursor rule is not represented in selected "
-                    "Rulesync source and may be removed by Rulesync.",
-                )
-            )
+        if cursor_output_represented(rel, source_names):
+            continue
+        summary.existing_generated_outputs.append(rel)
+        add_action(
+            summary,
+            Action(
+                "WARN",
+                rel,
+                "Existing generated Cursor rule is not represented in selected "
+                "Rulesync source and may be removed by Rulesync.",
+            ),
+        )
 
     if rulesync_delete_enabled(repo, standards):
-        summary.actions.append(
+        add_action(
+            summary,
             Action(
                 "WARN",
                 "rulesync.jsonc",
                 'rulesync.jsonc has delete=true; existing generated output may be deleted.',
-            )
+            ),
         )
 
     if orphaned and not summary.generated_output_rewrite_allowed and for_apply and will_run_rulesync:
         for rel in orphaned:
             orphan_name = Path(rel).name
-            covered = any(
-                orphan_name in target or target.endswith(orphan_name)
-                for target in summary.migrated_agent_rule_targets
-            )
-            if orphan_name == "conventional-commits.md" and any(
-                "conventional-commits" in t for t in summary.migrated_agent_rule_targets
-            ):
-                covered = True
-            if covered:
+            mapped = agent_rule_to_rulesync_name(Path(orphan_name))
+            covered = mapped in source_names or (
+                repo / ".rulesync" / "rules" / mapped
+            ).is_file()
+            if summary.migrate_existing_agent_rules and covered:
                 continue
-            summary.actions.append(
+            add_action(
+                summary,
                 Action(
                     "BLOCK",
                     rel,
                     "Rulesync may remove existing generated output; use "
                     "--allow-generated-output-rewrite or --migrate-existing-agent-rules.",
-                )
+                ),
             )
+
+
+def plan_license_warning(summary: MigrationSummary, repo: Path) -> None:
+    policy_text = summary.rendered_repo_policy
+    if not policy_text:
+        policy = repo / ".repo-policy.yml"
+        if policy.is_file():
+            policy_text = read_text(policy)
+    if not policy_text:
+        return
+
+    match = re.search(r'(?m)^license:\s*["\']?([^"\'\n#]+)', policy_text)
+    if not match:
+        return
+
+    license_value = match.group(1).strip().lower()
+    if license_value not in OPEN_SOURCE_LICENSES:
+        return
+
+    if (repo / "LICENSE").is_file() or (repo / "LICENSE.md").is_file():
+        return
+
+    add_action(
+        summary,
+        Action(
+            "WARN",
+            "LICENSE",
+            f".repo-policy.yml declares license {license_value} but LICENSE/LICENSE.md "
+            "is missing. Add a license intentionally or adjust .repo-policy.yml.",
+        ),
+    )
+
+
+def should_format_generated(language: str, apply_mode: bool, skip_format: bool) -> bool:
+    if skip_format or not apply_mode:
+        return False
+    return language == "typescript"
+
+
+def format_generated_json_files(repo: Path, paths: list[str]) -> str:
+    if not paths:
+        return ""
+    try:
+        completed = subprocess.run(
+            ["npx", "prettier", "--write", *paths],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        return f"Prettier unavailable: {exc}"
+    output = "\n".join(
+        part for part in (completed.stdout, completed.stderr) if part
+    ).strip()
+    if completed.returncode != 0:
+        return output or "Prettier failed"
+    return output
 
 
 def tracked_coverage_artifacts(repo: Path) -> list[str]:
@@ -902,58 +1047,63 @@ def plan_file_copy(
     authoritative: bool = False,
 ) -> None:
     if is_protected_path(rel_path):
-        summary.actions.append(
-            Action("BLOCK", rel_path, "Protected path; will not modify.")
+        add_action(
+            summary, Action("BLOCK", rel_path, "Protected path; will not modify.")
         )
         return
 
     if not source.is_file():
-        summary.actions.append(
-            Action("BLOCK", rel_path, f"Source missing: {source}")
+        add_action(
+            summary, Action("BLOCK", rel_path, f"Source missing: {source}")
         )
         return
 
     if not target.is_file():
-        summary.actions.append(Action("CREATE", rel_path, f"From {source.name}"))
+        add_action(summary, Action("CREATE", rel_path, f"From {source.name}"))
         return
 
     if files_match(source, target):
-        summary.actions.append(Action("SKIP", rel_path, "Already matches standards."))
+        add_action(summary, Action("SKIP", rel_path, "Already matches standards."))
         return
 
     if authoritative:
         if force:
-            summary.actions.append(
-                Action("UPDATE", rel_path, "Overwrite .repo-policy.yml with --force.")
+            add_action(
+                summary,
+                Action("UPDATE", rel_path, "Overwrite .repo-policy.yml with --force."),
             )
         else:
-            summary.actions.append(
+            add_action(
+                summary,
                 Action(
                     "SKIP",
                     rel_path,
                     ".repo-policy.yml is authoritative; review manually.",
-                )
+                ),
             )
-            summary.actions.append(
+            add_action(
+                summary,
                 Action(
                     "WARN",
                     rel_path,
                     "Existing .repo-policy.yml preserved; use --force to overwrite.",
-                )
+                ),
             )
         return
 
     if update_existing or force:
-        summary.actions.append(
-            Action("UPDATE", rel_path, "Existing standards-owned file differs.")
+        add_action(
+            summary,
+            Action("UPDATE", rel_path, "Existing standards-owned file differs."),
         )
     else:
-        summary.actions.append(
+        add_action(
+            summary,
             Action(
                 "SKIP",
                 rel_path,
                 "Existing file differs; use --update-existing or --force.",
-            )
+            ),
         )
 
 
@@ -967,28 +1117,29 @@ def plan_inline_file(
     force: bool,
 ) -> None:
     if is_protected_path(rel_path):
-        summary.actions.append(
-            Action("BLOCK", rel_path, "Protected path; will not modify.")
+        add_action(
+            summary, Action("BLOCK", rel_path, "Protected path; will not modify.")
         )
         return
 
     if not target.is_file():
-        summary.actions.append(Action("CREATE", rel_path, "Generated workflow."))
+        add_action(summary, Action("CREATE", rel_path, "Generated workflow."))
         return
 
     if target.read_text(encoding="utf-8") == content:
-        summary.actions.append(Action("SKIP", rel_path, "Already matches."))
+        add_action(summary, Action("SKIP", rel_path, "Already matches."))
         return
 
     if update_existing or force:
-        summary.actions.append(Action("UPDATE", rel_path, "Existing file differs."))
+        add_action(summary, Action("UPDATE", rel_path, "Existing file differs."))
     else:
-        summary.actions.append(
+        add_action(
+            summary,
             Action(
                 "SKIP",
                 rel_path,
                 "Existing file differs; use --update-existing or --force.",
-            )
+            ),
         )
 
 
@@ -1201,6 +1352,7 @@ def build_plan(
     summary.workflow_classifications = classify_all_workflows(repo)
 
     plan_repo_policy(summary, standards, repo, detection, selected_profile, force)
+    plan_license_warning(summary, repo)
 
     plan_file_copy(
         summary,
@@ -1241,6 +1393,15 @@ def build_plan(
         rel_path=".github/dependabot.yml",
         source=standards / "templates" / "dependabot.yml",
         target=repo / ".github" / "dependabot.yml",
+        update_existing=update_existing,
+        force=force,
+    )
+
+    plan_file_copy(
+        summary,
+        rel_path=".editorconfig",
+        source=standards / "templates" / ".editorconfig",
+        target=repo / ".editorconfig",
         update_existing=update_existing,
         force=force,
     )
@@ -1330,6 +1491,7 @@ def build_analysis(
     plan_nvmrc(summary, standards, repo, language, force=False)
     plan_coverage_cleanup(summary, repo, cleanup=False)
     plan_agent_rule_migration(summary, repo, selected_rules, migrate=False)
+    plan_license_warning(summary, repo)
     preflight_generated_outputs(
         summary,
         repo,
@@ -1423,6 +1585,7 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
     sources: dict[str, Path | None] = {
         "rulesync.jsonc": standards / "templates" / "rulesync.jsonc",
         "CONTRIBUTING.md": standards / "templates" / "CONTRIBUTING.md",
+        ".editorconfig": standards / "templates" / ".editorconfig",
         ".github/PULL_REQUEST_TEMPLATE.md": (
             standards / "templates" / ".github" / "PULL_REQUEST_TEMPLATE.md"
         ),
@@ -1485,6 +1648,28 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
         source = sources.get(action.path)
         if source is not None:
             execute_create_or_update(source, None, target)
+            if action.path == "rulesync.jsonc" and target.is_file():
+                text = read_text(target)
+                if text and not text.endswith("\n"):
+                    target.write_text(text + "\n", encoding="utf-8")
+
+
+def apply_format_generated(
+    summary: MigrationSummary,
+    repo: Path,
+    *,
+    language: str,
+    apply_mode: bool,
+    skip_format: bool,
+) -> None:
+    if not should_format_generated(language, apply_mode, skip_format):
+        return
+    output = format_generated_json_files(repo, ["rulesync.jsonc"])
+    if output and ("failed" in output.lower() or "unavailable" in output.lower()):
+        add_action(
+            summary,
+            Action("WARN", "rulesync.jsonc", f"Prettier format skipped: {output}"),
+        )
 
 
 def run_rulesync(repo: Path) -> tuple[bool, str]:
@@ -1836,6 +2021,11 @@ def parse_args() -> argparse.Namespace:
         help="Remove tracked coverage artifacts from the git index.",
     )
     parser.add_argument(
+        "--skip-format-generated",
+        action="store_true",
+        help="Skip Prettier formatting of generated JSON/JSONC files.",
+    )
+    parser.add_argument(
         "--summary-file",
         type=Path,
         default=None,
@@ -2002,6 +2192,13 @@ def main() -> int:
             return 1
 
         apply_actions(summary, standards, repo)
+        apply_format_generated(
+            summary,
+            repo,
+            language=summary.detection.get("language", ""),
+            apply_mode=True,
+            skip_format=args.skip_format_generated,
+        )
 
         if summary.cleanup_generated_artifacts and summary.tracked_generated_artifacts:
             remove_tracked_coverage_from_index(repo, summary.tracked_generated_artifacts)
