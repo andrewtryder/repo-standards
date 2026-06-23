@@ -1,5 +1,14 @@
 # Repo Standards
 
+[![Standards Repo CI](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml)
+[![Docs Pages](https://github.com/andrewtryder/repo-standards/actions/workflows/docs-pages.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/docs-pages.yml)
+[![Release Please](https://github.com/andrewtryder/repo-standards/actions/workflows/release-please.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/release-please.yml)
+[![Repo Standard](https://img.shields.io/badge/repo--standard-v1.3-38bdf8)](docs/repo-standard-v1.md)
+[![License](https://img.shields.io/github/license/andrewtryder/repo-standards)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/andrewtryder/repo-standards?sort=semver)](https://github.com/andrewtryder/repo-standards/releases)
+
+[![repo-standards social preview](docs/assets/brand/repo-standards-social-preview.png)](https://andrewtryder.github.io/repo-standards/)
+
 A reusable standards system for GitHub repositories covering CI/CD, docs, governance, AI/editor rules, dependency updates, release automation, deployment guidance, and migration assessment.
 
 **Current standard: Repo Standard v1.3** — see [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) for the full specification.

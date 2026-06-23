@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+<title id="title">repo-standards social preview</title>
+<desc id="desc">Social preview banner for repo-standards: reusable GitHub standards for CI/CD, docs, AI agents and migration.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1220"/><stop offset="1" stop-color="#0891B2"/></linearGradient>
+<filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/></filter>
+</defs>
+<rect width="1280" height="640" fill="url(#bg)"/>
+<g opacity="0.28" stroke="#38BDF8" stroke-width="2"><line x1="-200" y1="640" x2="230" y2="0"/><line x1="-50" y1="640" x2="380" y2="0"/><line x1="100" y1="640" x2="530" y2="0"/><line x1="250" y1="640" x2="680" y2="0"/><line x1="400" y1="640" x2="830" y2="0"/><line x1="550" y1="640" x2="980" y2="0"/><line x1="700" y1="640" x2="1130" y2="0"/><line x1="850" y1="640" x2="1280" y2="0"/><line x1="1000" y1="640" x2="1430" y2="0"/><line x1="1150" y1="640" x2="1580" y2="0"/><line x1="1300" y1="640" x2="1730" y2="0"/></g>
+<g filter="url(#shadow)">
+<rect x="88" y="96" width="416" height="432" rx="58" fill="#0F172A" opacity="0.78" stroke="#38BDF8" stroke-opacity="0.65" stroke-width="2"/>
+<rect x="144" y="150" width="304" height="304" rx="56" fill="#0F172A" stroke="#38BDF8" stroke-width="6"/>
+<rect x="164" y="170" width="264" height="264" rx="44" fill="none" stroke="#1E293B" stroke-width="4"/>
+<circle cx="296" cy="202" r="10" fill="#F8FAFC"/><line x1="296" y1="212" x2="296" y2="234" stroke="#CBD5E1" stroke-width="5"/><line x1="296" y1="222" x2="248" y2="240" stroke="#CBD5E1" stroke-width="5"/><line x1="296" y1="222" x2="344" y2="240" stroke="#CBD5E1" stroke-width="5"/><circle cx="248" cy="240" r="10" fill="#38BDF8"/><circle cx="344" cy="240" r="10" fill="#22C55E"/>
+<rect x="192" y="272" width="208" height="52" rx="14" fill="#1E293B" stroke="#38BDF8" stroke-width="4"/><circle cx="220" cy="298" r="9" fill="#38BDF8"/><rect x="264" y="289" width="108" height="10" rx="5" fill="#94A3B8"/><rect x="264" y="306" width="76" height="7" rx="4" fill="#475569"/>
+<rect x="192" y="336" width="208" height="52" rx="14" fill="#1E293B" stroke="#3B82F6" stroke-width="4"/><circle cx="220" cy="362" r="9" fill="#3B82F6"/><rect x="264" y="353" width="108" height="10" rx="5" fill="#94A3B8"/><rect x="264" y="370" width="76" height="7" rx="4" fill="#475569"/>
+<rect x="192" y="400" width="208" height="52" rx="14" fill="#1E293B" stroke="#22C55E" stroke-width="4"/><path d="M213 427 L229 440 L258 412" fill="none" stroke="#22C55E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><rect x="264" y="417" width="108" height="10" rx="5" fill="#94A3B8"/><rect x="264" y="434" width="76" height="7" rx="4" fill="#475569"/>
+</g>
+<rect x="560" y="108" width="250" height="42" rx="21" fill="#0F172A" opacity="0.75" stroke="#38BDF8" stroke-opacity="0.55" stroke-width="2"/>
+<text x="584" y="137" font-family="Inter, Lato, Arial, sans-serif" font-size="24" font-weight="700" fill="#BAE6FD">Repo Standard v1.3</text>
+<text x="560" y="239" font-family="Inter, Lato, Arial, sans-serif" font-size="82" font-weight="800" fill="#F8FAFC">repo-standards</text>
+<text x="560" y="316" font-family="Inter, Lato, Arial, sans-serif" font-size="36" font-weight="700" fill="#CBD5E1">Reusable GitHub standards for</text>
+<text x="560" y="362" font-family="Inter, Lato, Arial, sans-serif" font-size="36" font-weight="700" fill="#CBD5E1">CI/CD, docs, AI agents &amp; migration</text>
+<g font-family="Inter, Lato, Arial, sans-serif" font-size="24" font-weight="700" fill="#F8FAFC">
+<rect x="560" y="412" width="120" height="42" rx="21" fill="#0F172A" opacity="0.75" stroke="#38BDF8"/><circle cx="581" cy="433" r="5" fill="#38BDF8"/><text x="594" y="441">Detect</text>
+<rect x="702" y="412" width="108" height="42" rx="21" fill="#0F172A" opacity="0.75" stroke="#3B82F6"/><circle cx="723" cy="433" r="5" fill="#3B82F6"/><text x="736" y="441">Adopt</text>
+<rect x="832" y="412" width="118" height="42" rx="21" fill="#0F172A" opacity="0.75" stroke="#22C55E"/><circle cx="853" cy="433" r="5" fill="#22C55E"/><text x="866" y="441">Assess</text>
+<rect x="972" y="412" width="124" height="42" rx="21" fill="#0F172A" opacity="0.75" stroke="#A855F7"/><circle cx="993" cy="433" r="5" fill="#A855F7"/><text x="1006" y="441">Govern</text>
+</g>
+<text x="560" y="540" font-family="Inter, Lato, Arial, sans-serif" font-size="22" font-weight="600" fill="#BAE6FD">github.com/andrewtryder/repo-standards</text>
+</svg>
