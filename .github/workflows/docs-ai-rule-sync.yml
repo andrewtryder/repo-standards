@@ -1,0 +1,36 @@
+name: Docs / AI Rule Sync
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "docs/**"
+      - "templates/**"
+      - "profiles/**"
+      - "ai/rules/**"
+      - ".rulesync/**"
+      - "rulesync.jsonc"
+      - "templates/rulesync.jsonc"
+      - "AGENTS.md"
+      - ".cursor/**"
+      - ".agents/**"
+      - "scripts/check_docs_ai_rule_sync.py"
+      - ".github/workflows/docs-ai-rule-sync.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  docs-ai-rule-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check docs and AI rule sync
+        run: python3 scripts/check_docs_ai_rule_sync.py --base-ref origin/${{ github.base_ref }}

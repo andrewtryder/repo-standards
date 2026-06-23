@@ -1,490 +1,69 @@
 # Repo Standards
 
-A reusable blueprint for repository hygiene, CI/CD consistency, AI/editor instruction synchronization, governance files, and migration assessment.
+A reusable standards system for GitHub repositories covering CI/CD, docs, governance, AI/editor rules, dependency updates, release automation, deployment guidance, and migration assessment.
 
 **Current standard: Repo Standard v1.3** — see [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) for the full specification.
 
-This repository defines a baseline standard for all projects. It provides templates, workflows, AI/editor rules, and assessment tools so that every repository starts from a consistent, well-governed foundation.
+## What this is
 
-## What this standard covers
+This repository defines a baseline standard for existing and future code repositories.
 
-- **AI/editor instructions** via Rulesync — canonical rules in `.rulesync/rules/*.md`, generated outputs in `AGENTS.md`, `.cursor/rules/*.mdc`, `.agents/rules/*.md`, and `.agents/memories/*.md`
-- **`.repo-policy.yml`** — per-repo profile, commands, quality gates, release, deploy, and governance metadata
-- **Semantic PR titles / Conventional Commits** — enforced in CI, optional local commitlint
-- **Release Please** — automated release PRs and changelogs where applicable
-- **Linting, formatting, typechecking, tests, and report-only coverage** — phased enforcement, never block a useful bugfix over legacy coverage
-- **Docs and governance files** — `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.github/PULL_REQUEST_TEMPLATE.md`
-- **Dependabot** — weekly updates for GitHub Actions, npm, and pip
-- **Secret scanning** — TruffleHog PR diff scanning for verified secrets
-- **Node version management** — `.nvmrc` is required for Node repositories and is the operational source of truth for local and CI Node version; AI rules checks use `.nvmrc` when present and fall back to Node 24 for non-Node repositories
-- **Repository health baseline** — `.gitignore`, `.env.example`, `.editorconfig`, `SECURITY.md`, issue templates, ADRs, CODEOWNERS, devcontainers, license scanning
-- **Migration assessments** — scripts that score a repo's alignment with the standard
+It provides:
 
-## Repository health files
+- repo policy profiles
+- copyable templates
+- reusable GitHub Actions workflows
+- AI/editor rule synchronization
+- migration and assessment tooling
+- deployment-provider guidance
 
-The repository health baseline ensures consistent project hygiene across all repositories:
+## Quick start
 
-### Required for new repos
+### New repository
 
-Every new repository must include:
+Read [`docs/new-repository-setup.md`](docs/new-repository-setup.md).
 
-```txt
-README.md
-.repo-policy.yml
-AGENTS.md
-CONTRIBUTING.md
-LICENSE or LICENSE.md
-SECURITY.md
-.github/PULL_REQUEST_TEMPLATE.md
-.gitignore
-.editorconfig
-.env.example
+### Existing repository
+
+Read [`docs/existing-repository-migration.md`](docs/existing-repository-migration.md).
+
+### Not sure what applies?
+
+Run the advisory detector:
+
+```bash
+python3 scripts/detect_repo_standard.py --repo /path/to/project --format markdown
 ```
 
-### Warnings for existing repos during migration
+Then create or update `.repo-policy.yml`.
 
-When migrating existing repositories, the following items should be addressed but are not blockers:
+## Source-of-truth model
 
-```txt
-SECURITY.md
-.env.example
-.editorconfig
-issue templates (.github/ISSUE_TEMPLATE/)
-ADR directory (docs/decisions/)
-CODEOWNERS
-devcontainer
-license scanning
-```
+In each application repository:
 
-### Health file details
+- `.repo-policy.yml` defines the adopted standard profile and repo-specific commands.
+- `.rulesync/rules/*.md` contains canonical AI/editor rules.
+- Generated AI/editor outputs are committed after running Rulesync.
 
-#### `.gitignore`
-
-- Required for all repos
-- Use templates from `templates/gitignore/` based on project type:
-  - `node.gitignore` for Node.js projects
-  - `python.gitignore` for Python projects
-  - `cloudflare-worker.gitignore` for Cloudflare Workers
-  - `mixed.gitignore` for mixed-language projects
-- Ensure `coverage/` is ignored in all repos
-- Do not ignore `.agents/memories/` if using the `antigravity-ide` Rulesync target
-
-#### `.env.example`
-
-- Required for all repos with environment variables
-- Document required environment variable names with blank or placeholder values only
-- Do not commit real secret values
-- Include Honeybadger placeholders if using Honeybadger:
-  ```txt
-  HONEYBADGER_API_KEY=
-  HONEYBADGER_ENVIRONMENT=development
-  ```
-- For Cloudflare Workers, add comments explaining that production secrets should be configured with Wrangler/Cloudflare secrets
-
-#### `.editorconfig`
-
-- Required for all repos
-- Ensures consistent code formatting across editors
-- Template at `templates/.editorconfig`
-- Default settings:
-  - LF line endings
-  - UTF-8 charset
-  - 2 spaces for JavaScript/TypeScript/JSON/YAML
-  - 4 spaces for Python
-  - Preserve trailing whitespace in Markdown
-
-#### `SECURITY.md`
-
-- Required for all repos
-- Template at `templates/SECURITY.md`
-- Include:
-  - Supported versions
-  - How to report a vulnerability
-  - Contact method placeholder
-  - Expected response timeline
-  - Request not to disclose publicly before coordination
-  - Note that secrets should never be included in reports
-
-#### Issue templates
-
-- Optional but recommended
-- Templates at `templates/.github/ISSUE_TEMPLATE/`
-- Include:
-  - `bug_report.yml` - for reporting bugs
-  - `feature_request.yml` - for feature requests
-  - `config.yml` - to disable blank issues and provide contact links
-
-#### ADRs (Architecture Decision Records)
-
-- Optional but recommended for significant architectural decisions
-- Template at `templates/docs/decisions/ADR-000-template.md`
-- Store in `docs/decisions/` directory
-- Use ADR-XXX naming convention (e.g., ADR-001, ADR-002)
-
-#### CODEOWNERS
-
-- Optional guidance, not required
-- Template at `templates/.github/CODEOWNERS`
-- Document that users must update the owner before copying
-- Example:
-  ```txt
-  # Default owner
-  * @YOUR_GITHUB_USERNAME
-  ```
-
-#### Devcontainers
-
-- Optional guidance for repos with heavier setup
-- Useful for Cloudflare Workers or Python service repos
-- Not required in the standards assessment
-- Document when and why to use devcontainers
-
-#### Dependency license scanning
-
-- Optional future quality gate
-- Not required in current standards
-- For Node: consider tools like `license-checker`
-- For Python: consider tools like `pip-licenses`
-- Document as future enhancement in repo documentation
-
-## Repository layout
-
-| Directory | Purpose | How it's used |
-|---|---|---|
-| `ai/rules/` | Canonical AI/editor rules (org-wide, TypeScript, Python) | Copied into each repo's `.rulesync/rules/*.md` |
-| `configs/` | Starter configs: commitlint, pre-commit, ruff, `.nvmrc` | Copied into each repo and customized |
-| `docs/` | Standard specification and guides | Reference documentation; not copied into repos |
-| `templates/` | Repo policy profiles, Dependabot config, license templates, governance files | Copied into each repo and customized |
-| `templates/workflows/` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, secret scan) and reusable workflow reference copies | Copied into each repo's `.github/workflows/` for non-reusable workflows |
-| `.github/workflows/*.reusable.yml` | Live reusable workflows callable by downstream repos | Called from consumer repos via `uses:` |
-| `templates/licenses/` | MIT and proprietary license templates | One copied to each repo root as `LICENSE` or `LICENSE.md` |
-| `scripts/` | Assessment tools | Run against application repos; not copied |
-| `assessments/` | Reference assessment examples and default generated output location | See `assessments/README.md` |
-
-### File lifecycle
-
-| File | Lifecycle |
-|---|---|
-| `.repo-policy.yml` | **Copied** from template, customized per repo |
-| `rulesync.jsonc` | **Copied** from template |
-| `.rulesync/rules/*.md` | **Copied** from `ai/rules/`, customized per repo |
-| `AGENTS.md` | **Generated** by `npx rulesync generate` |
-| `.cursor/rules/*.mdc` | **Generated** by `npx rulesync generate` |
-| `.agents/rules/*.md` | **Generated** by `npx rulesync generate` |
-| `.agents/memories/*.md` | **Generated** by `npx rulesync generate` (when `antigravity-ide` target is enabled) |
-| `.github/workflows/*.yml` | **Copied** from `templates/workflows/`, customized per repo |
-| `CONTRIBUTING.md` | **Copied** from template, customized per repo |
-| `.github/PULL_REQUEST_TEMPLATE.md` | **Copied** from template |
-| `LICENSE` or `LICENSE.md` | **Copied** from `templates/licenses/`, year and copyright holder filled in |
-| `.github/dependabot.yml` | **Copied** from `templates/dependabot.yml`, customized per repo |
-| `.nvmrc` | **Copied** from `configs/node/.nvmrc`, version adjusted per repo |
-
-## Source of truth model
-
-In an application repository, the canonical source of truth is:
-
-```txt
-.repo-policy.yml
-.rulesync/rules/*.md
-```
-
-Generated AI/editor outputs are committed:
-
-```txt
-AGENTS.md
-.cursor/rules/*.mdc
-.agents/rules/*.md
-.agents/memories/*.md
-```
-
-### Generated outputs explained
-
-- **`AGENTS.md`** — universal AI agent instructions, works in any AI coding tool
-- **`.cursor/rules/*.mdc`** — Cursor IDE-specific rules
-- **`.agents/rules/*.md`** — Antigravity IDE rules
-- **`.agents/memories/*.md`** — generated by the Rulesync `antigravity-ide` target; intentionally committed when the repo opts into Antigravity IDE support. This is not local runtime junk.
-
-### What should NOT be committed
-
-```txt
-coverage/           # build/test artifacts
-htmlcov/
-.coverage
-dist/               # build outputs
-node_modules/       # dependencies
-.env                # local environment
-*.pem, id_rsa       # secrets
-.agents/            # (only if generated locally in this standards repo)
-.cursor/            # (only if generated locally in this standards repo)
-```
+See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model. For how documentation and AI/editor rules stay aligned, see [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md).
 
 ## Documentation
 
-| Document | Description |
+| Need | Read |
 |---|---|
-| `docs/new-repository-setup.md` | Step-by-step guide for brand-new repositories |
-| `docs/existing-repository-migration.md` | Step-by-step guide for migrating existing repositories |
-| `docs/assessment-guide.md` | How to run the assessor and interpret results |
-| `docs/repo-standard-v1.md` | Full standard specification (v1.3) |
-| `docs/migration-order.md` | Suggested migration order for the pilot and batches |
-| `docs/branch-protection.md` | Required checks for branch protection rules |
-| `docs/dependency-updates.md` | Dependabot configuration and customization |
-| `docs/security-scanning.md` | Secret scanning with TruffleHog |
-| `docs/template-drift.md` | Managing template drift (copied vs reusable workflows) |
-| `docs/codeowners.md` | CODEOWNERS guidance and best practices |
-| `docs/devcontainer.md` | Devcontainer setup and usage |
-| `docs/license-scanning.md` | Dependency license scanning guidance |
-
-### Step-by-step
-
-```bash
-mkdir my-new-project
-cd my-new-project
-git init
-```
-
-Copy and adapt templates from this repo:
-
-```txt
-.repo_policy.yml          → from templates/repo-policy.<profile>.yml
-rulesync.jsonc            → from templates/rulesync.jsonc
-.rulesync/rules/*         → from ai/rules/*
-.nvmrc                    → from configs/node/.nvmrc (Node repos only)
-commitlint.config.mjs     → from configs/node/ (optional)
-.pre-commit-config.yaml   → from configs/python/ (Python repos)
-ruff.toml                 → from configs/python/ (Python repos)
-CONTRIBUTING.md           → from templates/CONTRIBUTING.md
-LICENSE or LICENSE.md     → from templates/licenses/LICENSE-MIT.txt or LICENSE-PROPRIETARY.txt
-.github/PULL_REQUEST_TEMPLATE.md → from templates/.github/PULL_REQUEST_TEMPLATE.md
-.github/dependabot.yml    → from templates/dependabot.yml
-.github/workflows/*       → from templates/workflows/*
-```
-
-Generate AI/editor outputs:
-
-```bash
-npx rulesync generate
-```
-
-Verify all expected outputs exist:
-
-```bash
-find AGENTS.md .cursor .agents .rulesync -maxdepth 4 -type f -print | sort
-```
-
-Run checks:
-
-```bash
-npm run lint --if-present
-npm run typecheck --if-present
-npm test --if-present
-# or for Python:
-ruff check .
-ruff format --check .
-pytest
-```
-
-Run the assessor:
-
-```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
-  --repo /path/to/my-new-project \
-  --standards /path/to/repo-standards \
-  --run-safe-checks
-```
-
-Recommended first commit message:
-
-```txt
-chore(standards): initialize repository standards
-```
-
-## Using this blueprint for an existing repository
-
-### Migration sequence
-
-1. Create a migration branch: `git checkout -b chore/standards-migration`
-2. Run the assessor first to establish a baseline
-3. Add `.repo-policy.yml` (choose the matching profile)
-4. Add `.nvmrc` (for Node repos)
-5. Add `rulesync.jsonc` and `.rulesync/rules/*`
-6. Generate AI/editor outputs: `npx rulesync generate`
-7. Add governance files: `CONTRIBUTING.md`, `LICENSE`, `.github/PULL_REQUEST_TEMPLATE.md`
-8. Add or update `.gitignore` (ensure `coverage/` is ignored)
-9. Add non-invasive workflows first:
-   - semantic PR title
-   - AI rules check
-   - docs check
-   - secret scan
-   - Dependabot
-10. Preserve deploy workflows during the first migration
-11. Run local checks
-12. Run the assessor again
-13. Open a focused PR
-
-### What the first migration PR should NOT do
-
-- Change deploy behavior
-- Change package manager
-- Fix unrelated lint warnings
-- Fix unrelated npm audit findings
-- Add coverage thresholds
-- Rewrite application code
-
-Recommended first migration commit message:
-
-```txt
-chore(standards): adopt repo standards
-```
-
-## Assessing a repository
-
-### Command
-
-```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
-  --repo /path/to/application-repo \
-  --standards /path/to/repo-standards \
-  --base-ref main \
-  --run-safe-checks
-```
-
-### Two modes
-
-**Read-only structural assessment** (without `--run-safe-checks`):
-- Checks for required files and directories
-- Validates workflow configuration
-- Inspects `.repo-policy.yml` structure
-- Checks for generated AI/editor outputs
-- Does not execute any commands in the target repo
-
-**Full assessment** (with `--run-safe-checks`):
-- Everything in read-only mode, plus:
-- Runs `npm ci` / `pip install` (install)
-- Runs lint, typecheck, tests, coverage, build (if scripts exist)
-- Runs `npx rulesync generate` and checks for drift
-- Runs `git diff --check` (whitespace)
-
-The assessor does not deploy.
-
-### Typical acceptable warnings
-
-- Low test coverage (keep report-only)
-- ESLint warnings (track as tech debt)
-- npm audit findings (separate follow-up PR)
-- Deleted generated coverage files (acceptable cleanup)
-- Missing `.nvmrc`, Dependabot, secret scan (recommended but not yet required)
-
-### Typical blockers
-
-- Missing `.repo-policy.yml`
-- Missing `.rulesync/rules/*`
-- Missing generated AI/editor files
-- Added/modified generated coverage artifacts
-- Secret-like files in the diff
-- Risky deploy changes in a standards-only PR
-
-## Profiles
-
-| Profile | Template | Typical use |
-|---|---|---|
-| `typescript-library` | `repo-policy.typescript-library.yml` | npm packages, shared libraries |
-| `typescript-cloudflare-worker` | `repo-policy.typescript-cloudflare.yml` | Cloudflare Workers |
-| `typescript-app` | `repo-policy.typescript-app.yml` | Frontend or backend apps (no npm publish) |
-| `python-service` | `repo-policy.python-service.yml` | Python services and APIs |
-| `python-home-assistant` | `repo-policy.python-home-assistant.yml` | Home Assistant custom components |
-| `mixed-special` | `repo-policy.mixed-special.yml` | Monorepos, multi-language, or unusual setups |
-
-Mixed/special repos should migrate conservatively — start with the non-invasive workflows and governance files, then adopt CI quality gates incrementally.
-
-## New repository checklist
-
-- [ ] Choose profile from the table above
-- [ ] Add `.repo-policy.yml` (set `visibility` and `license`)
-- [ ] Add `.nvmrc` (for Node repos)
-- [ ] Add `rulesync.jsonc` and `.rulesync/rules/*`
-- [ ] Run `npx rulesync generate` and commit outputs
-- [ ] Add workflows (CI, semantic PR, AI rules, docs, secret scan)
-- [ ] Add `CONTRIBUTING.md`
-- [ ] Add `.github/PULL_REQUEST_TEMPLATE.md`
-- [ ] Add `LICENSE` or `LICENSE.md` (MIT for public, proprietary for private)
-- [ ] Add `.github/dependabot.yml`
-- [ ] Add `.gitignore` entries for `coverage/`, build outputs, secrets
-- [ ] Run checks locally
-- [ ] Run the assessor
-
-## Existing repository migration checklist
-
-- [ ] Create migration branch
-- [ ] Run assessor before changes (baseline)
-- [ ] Add `.repo-policy.yml`
-- [ ] Add `.nvmrc` (Node repos)
-- [ ] Add `rulesync.jsonc` and `.rulesync/rules/*`
-- [ ] Generate AI/editor outputs with `npx rulesync generate`
-- [ ] Add governance files (`CONTRIBUTING.md`, `LICENSE`, PR template)
-- [ ] Add non-invasive workflows (semantic PR, AI rules, docs, secret scan, Dependabot)
-- [ ] Preserve deploy behavior
-- [ ] Remove generated coverage artifacts if previously tracked
-- [ ] Run checks locally
-- [ ] Run assessor after changes
-- [ ] Open focused PR
-
-## Licensing and public/private repos
-
-- **Public/open-source repos** should use an explicit open-source license. MIT is the default recommendation.
-- **Private/proprietary repos** should use a proprietary/all-rights-reserved notice.
-- Do not add or change a license casually. Licensing decisions should be reviewed by the repo owner.
-- Agents must never change license terms unless explicitly instructed.
-- Private repos should not accidentally receive an open-source license.
-
-License templates:
-
-```txt
-templates/licenses/LICENSE-MIT.txt          # for public/open-source repos
-templates/licenses/LICENSE-PROPRIETARY.txt  # for private/proprietary repos
-```
-
-The `.repo-policy.yml` `visibility` and `license` fields should match the chosen license.
-
-## What to enforce first
-
-### Phase 1 — Foundation
-
-- Semantic PR title validation
-- AI rules sync check
-- Docs and governance files
-- Secret scan
-- Existing lint/test/build checks (report-only coverage)
-
-### Phase 2 — Automation
-
-- Reusable workflows (reduce drift)
-- Dependabot (dependency update automation)
-- Release normalization (Release Please)
-- Coverage reporting (still report-only)
-
-### Phase 3 — Strictness
-
-- Coverage thresholds (only when stable)
-- Stricter typechecking (Python mypy/pyright)
-- Deeper security scanning (CodeQL, dependency review)
-
-## Drift management
-
-Early migrations typically **copy** templates into each repo. This is fast but creates drift over time as the canonical templates evolve.
-
-The long-term preferred approach is **GitHub reusable workflows** defined in this standards repo and called from downstream repos. This centralizes CI logic and ensures updates flow automatically.
-
-Live callable workflows live in `.github/workflows/*.reusable.yml`. Template copies for reference or early migration are in `templates/workflows/*.reusable.yml`.
-
-Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
-
-| Approach | Pros | Cons |
-|---|---|---|
-| Copied templates | Fast to adopt, full customization | Drift over time, manual reassessment |
-| Reusable workflows | Centralized logic, automatic updates | Less customization, requires stable standard |
-
-See `docs/template-drift.md` for caller examples and migration guidance.
+| Core concepts | [`docs/concepts.md`](docs/concepts.md) |
+| AI rules maintenance | [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md) |
+| New repo setup | [`docs/new-repository-setup.md`](docs/new-repository-setup.md) |
+| Existing repo migration | [`docs/existing-repository-migration.md`](docs/existing-repository-migration.md) |
+| Profiles | [`docs/profiles.md`](docs/profiles.md) |
+| Detection | [`docs/detection.md`](docs/detection.md) |
+| Assessment | [`docs/assessment-guide.md`](docs/assessment-guide.md) |
+| Full specification | [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) |
+| Branch protection | [`docs/branch-protection.md`](docs/branch-protection.md) |
+| Template drift | [`docs/template-drift.md`](docs/template-drift.md) |
+| Cloudflare deploy guidance | [`docs/deployment/cloudflare.md`](docs/deployment/cloudflare.md) |
+| GCP deploy guidance | [`docs/deployment/gcp.md`](docs/deployment/gcp.md) |
+| Railway deploy guidance | [`docs/deployment/railway.md`](docs/deployment/railway.md) |
 
 ## Contributing
 

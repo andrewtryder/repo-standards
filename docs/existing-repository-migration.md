@@ -13,6 +13,8 @@ The first migration PR should be **focused and non-invasive**:
 
 Think of it as adding a safety net, not renovating the house.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Step 1: Create a migration branch
 
 ```bash
@@ -21,7 +23,25 @@ git pull
 git checkout -b chore/standards-migration
 ```
 
-## Step 2: Run the assessor (baseline)
+## Step 2: Detect likely profile
+
+Before copying templates, run:
+
+```bash
+python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo .
+```
+
+The detector is read-only and advisory. Use its output to choose a starting profile, then review `.repo-policy.yml` manually. See [`detection.md`](detection.md).
+
+If your repo deploys to Cloudflare, GCP, or Railway, read the matching deployment guide before migration:
+
+- [`deployment/cloudflare.md`](deployment/cloudflare.md)
+- [`deployment/gcp.md`](deployment/gcp.md)
+- [`deployment/railway.md`](deployment/railway.md)
+
+**Do not change deploy behavior during the first migration PR.**
+
+## Step 3: Run the assessor (baseline)
 
 Establish a baseline before making changes:
 
@@ -34,9 +54,9 @@ python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
 
 Note the baseline score and warnings. You'll compare against this after migration.
 
-## Step 3: Choose a profile
+## Step 4: Choose a profile
 
-Review your project and choose the closest profile:
+Review your project and choose the closest profile (use detector output from Step 2 as a starting point):
 
 | Profile | Template | Typical use |
 |---|---|---|
@@ -47,7 +67,7 @@ Review your project and choose the closest profile:
 | `python-home-assistant` | `repo-policy.python-home-assistant.yml` | Home Assistant custom components |
 | `mixed-special` | `repo-policy.mixed-special.yml` | Monorepos, multi-language, or unusual setups |
 
-## Step 4: Add `.repo-policy.yml`
+## Step 5: Add `.repo-policy.yml`
 
 Copy the matching template:
 
@@ -65,7 +85,7 @@ Customize:
 - `deploy` — preserve your existing deploy workflow reference
 - `governance` — set `contributing: required` and `pull_request_template: required`
 
-## Step 5: Add `.nvmrc` (Node repos only)
+## Step 6: Add `.nvmrc` (Node repos only)
 
 ```bash
 cp /path/to/repo-standards/configs/node/.nvmrc .nvmrc
@@ -73,7 +93,7 @@ cp /path/to/repo-standards/configs/node/.nvmrc .nvmrc
 
 Edit to match your project's Node.js version. Check `package.json` `engines` field or existing CI configs.
 
-## Step 6: Add Rulesync configuration
+## Step 7: Add Rulesync configuration
 
 ```bash
 cp /path/to/repo-standards/templates/rulesync.jsonc .
@@ -81,7 +101,7 @@ mkdir -p .rulesync/rules
 cp /path/to/repo-standards/ai/rules/*.md .rulesync/rules/
 ```
 
-## Step 7: Generate AI/editor outputs
+## Step 8: Generate AI/editor outputs
 
 ```bash
 npx rulesync generate
@@ -89,7 +109,7 @@ npx rulesync generate
 
 This creates `AGENTS.md`, `.cursor/rules/*`, `.agents/rules/*`, and optionally `.agents/memories/*`.
 
-## Step 8: Add governance files
+## Step 9: Add governance files
 
 ### CONTRIBUTING.md
 
@@ -126,7 +146,7 @@ cp /path/to/repo-standards/templates/.github/PULL_REQUEST_TEMPLATE.md .github/PU
 
 (Only if `.github/` already exists; otherwise create it.)
 
-## Step 9: Add non-invasive workflows
+## Step 10: Add non-invasive workflows
 
 Add these workflows first — they don't change build or deploy behavior:
 
@@ -146,13 +166,13 @@ cp /path/to/repo-standards/templates/workflows/node-ci.yml .github/workflows/ci.
 cp /path/to/repo-standards/templates/workflows/python-ci.yml .github/workflows/ci.yml
 ```
 
-## Step 10: Add Dependabot
+## Step 11: Add Dependabot
 
 ```bash
 cp /path/to/repo-standards/templates/dependabot.yml .github/dependabot.yml
 ```
 
-## Step 11: Update `.gitignore`
+## Step 12: Update `.gitignore`
 
 Ensure `coverage/` and other generated artifacts are ignored:
 
@@ -170,13 +190,13 @@ If coverage files were previously tracked, remove them:
 git rm -r --cached coverage/ 2>/dev/null || true
 ```
 
-## Step 12: Preserve deploy behavior
+## Step 13: Preserve deploy behavior
 
 **Do not modify deploy workflows in the first migration PR.** If your repo has existing deploy workflows (e.g., `.github/workflows/deploy.yml`), leave them untouched.
 
 The first migration PR should only add standards infrastructure. Deploy changes should come in a follow-up PR after the standards are stable.
 
-## Step 13: Run checks locally
+## Step 14: Run checks locally
 
 ```bash
 # Node
@@ -189,7 +209,7 @@ ruff check .
 pytest
 ```
 
-## Step 14: Generate coverage and clean up
+## Step 15: Generate coverage and clean up
 
 ```bash
 # Run coverage
@@ -207,7 +227,7 @@ Stage any deletions of previously tracked coverage files:
 git add -u  # stages deletions
 ```
 
-## Step 15: Run the assessor again
+## Step 16: Run the assessor again
 
 ```bash
 python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
@@ -219,7 +239,7 @@ python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
 
 Compare against your baseline. The score should be equal or higher. Resolve any new blockers.
 
-## Step 16: Open a focused PR
+## Step 17: Open a focused PR
 
 ```bash
 git add .

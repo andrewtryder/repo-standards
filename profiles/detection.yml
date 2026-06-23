@@ -1,0 +1,98 @@
+languages:
+  typescript:
+    evidence:
+      - file: package.json
+      - file_any:
+          - tsconfig.json
+          - vite.config.ts
+          - src/**/*.ts
+          - src/**/*.tsx
+    package_managers:
+      npm:
+        evidence:
+          - file: package-lock.json
+      pnpm:
+        evidence:
+          - file: pnpm-lock.yaml
+      yarn:
+        evidence:
+          - file: yarn.lock
+      bun:
+        evidence:
+          - file_any:
+              - bun.lock
+              - bun.lockb
+
+  python:
+    evidence:
+      - file_any:
+          - pyproject.toml
+          - requirements.txt
+          - requirements-dev.txt
+          - setup.py
+          - setup.cfg
+      - glob: "**/*.py"
+
+deploy:
+  cloudflare:
+    evidence:
+      - file_any:
+          - wrangler.toml
+          - wrangler.json
+          - wrangler.jsonc
+      - contains:
+          paths:
+            - package.json
+            - .github/workflows/*.yml
+            - .github/workflows/*.yaml
+          terms:
+            - wrangler
+            - cloudflare
+
+  gcp:
+    evidence:
+      - file_any:
+          - cloudbuild.yaml
+          - cloudbuild.yml
+          - app.yaml
+      - contains:
+          paths:
+            - .github/workflows/*.yml
+            - .github/workflows/*.yaml
+          terms:
+            - gcloud
+            - google-github-actions
+            - cloud run
+            - cloud functions
+            - app engine
+            - artifact registry
+            - workload identity
+
+  railway:
+    evidence:
+      - file: railway.json
+      - contains:
+          paths:
+            - .github/workflows/*.yml
+            - .github/workflows/*.yaml
+            - README.md
+          terms:
+            - railway
+
+profiles:
+  typescript-cloudflare-worker:
+    when:
+      language: typescript
+      deploy: cloudflare
+
+  typescript-app:
+    when:
+      language: typescript
+
+  python-service:
+    when:
+      language: python
+
+  mixed-special:
+    when:
+      language: mixed

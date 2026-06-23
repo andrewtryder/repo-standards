@@ -2,6 +2,23 @@
 
 The repo-standards assessor scores a repository's alignment with **Repo Standard v1.3**. Use `scripts/assess_repo_standards.py` as the current assessor. This guide explains how to run it and interpret results.
 
+For **profile detection** before migration, use the read-only detector instead:
+
+```bash
+python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo /path/to/application-repo
+```
+
+See [`detection.md`](detection.md) for detection vs assessment differences.
+
+The **Docs / AI Rule Sync** check warns when docs, templates, profiles, or standards files change without corresponding AI rule source changes. It is warning-only by default. Repos may make it strict after the standard stabilizes.
+
+```bash
+python3 /path/to/repo-standards/scripts/check_docs_ai_rule_sync.py --base-ref main
+python3 /path/to/repo-standards/scripts/check_docs_ai_rule_sync.py --base-ref main --strict
+```
+
+See [`ai-rules-maintenance.md`](ai-rules-maintenance.md) for the governed docs-to-Rulesync pipeline.
+
 ## Running the assessor
 
 ### Basic usage

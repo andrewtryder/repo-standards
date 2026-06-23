@@ -2,6 +2,8 @@
 
 This guide walks through setting up a brand-new repository using the repo-standards blueprint.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Prerequisites
 
 - A GitHub account
@@ -23,6 +25,18 @@ git remote add origin https://github.com/<user>/<repo>.git
 ```
 
 ## Step 2: Choose a profile
+
+See [`profiles.md`](profiles.md) for full profile descriptions.
+
+### Optional: detect profile from an existing local project shape
+
+If the repository already has starter files, run:
+
+```bash
+python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo .
+```
+
+Use the recommendation as a starting point, then create `.repo-policy.yml`. Detection is read-only and advisory — see [`detection.md`](detection.md).
 
 Select the profile that best matches your project:
 

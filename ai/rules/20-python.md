@@ -16,3 +16,10 @@ Preferred checks:
 - `coverage run -m pytest && coverage report`
 
 Use Ruff for formatting/linting and pytest for tests when configured.
+
+## Related docs
+
+- `docs/profiles.md`
+- `docs/ai-rules-maintenance.md`
+- `docs/detection.md`
+- `docs/deployment/gcp.md`
