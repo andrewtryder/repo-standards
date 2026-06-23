@@ -1,0 +1,33 @@
+name: example-typescript-app
+profile: typescript-app
+package_manager: npm
+node_version: "24"
+
+commands:
+  install: npm ci
+  format_check: npm run format:check --if-present
+  lint: npm run lint --if-present
+  typecheck: npm run typecheck --if-present
+  test: npm test --if-present
+  coverage: npm run test:coverage --if-present
+  build: npm run build --if-present
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+
+release:
+  release_please: false
+  production_branch: main
+
+deploy:
+  provider: repo-specific
+  workflow: repo-specific
+
+migration_notes: >
+  Set node_version to your project's Node version.
+  If this repo publishes a package, enable release_please and choose the
+  appropriate strategy (node or simple).
+  For apps that deploy but do not publish, set release_please: false.

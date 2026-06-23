@@ -1,0 +1,51 @@
+name: Docs
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required docs exist
+        run: |
+          test -f README.md
+          test -f .repo-policy.yml
+          test -f AGENTS.md
+
+      - name: README contains required concepts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path("README.md").read_text(encoding="utf-8", errors="ignore").lower()
+
+          # Concept-level keyword checks (not brittle heading checks)
+          concepts = {
+              "overview": ["overview", "about", "what is", "introduction", "description"],
+              "local development": ["local development", "local setup", "getting started", "development", "setup"],
+              "checks": ["checks", "ci", "quality gates", "lint", "test", "coverage", "typecheck"],
+              "deployment or release": ["deploy", "release", "publish", "continuous deployment"],
+              "environment/secrets": ["environment", "env", "secret", "variable", "none required"],
+              "ai/editor instructions": ["ai", "agent", "cursor", "editor", "rulesync", "ag"],
+          }
+
+          missing = []
+          for concept, keywords in concepts.items():
+              if not any(kw in text for kw in keywords):
+                  missing.append(concept)
+
+          if missing:
+              raise SystemExit(
+                  f"README.md missing expected concepts: {missing}\n"
+                  f"Each README should cover: overview, local development, checks, "
+                  f"deployment or release, environment/secrets, and AI/editor instructions.\n"
+                  f"A repo with no environment variables may use 'None required.'"
+              )
+          PY

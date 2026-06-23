@@ -1,0 +1,262 @@
+{
+  "command_analysis": {
+    "coverage": {
+      "branches": 8.64,
+      "functions": 9.61,
+      "lines": 8.29,
+      "statements": 8.01
+    },
+    "eslint_errors": 0,
+    "eslint_warnings": 20,
+    "npm_vulnerabilities": 7,
+    "npm_vulnerability_detail": "1 low, 2 moderate, 4 high",
+    "rulesync_only_agents_md": true,
+    "rulesync_stdout": "Written 2 rules\n    AGENTS.md\n    AGENTS.md\n\ud83c\udf89 All done! Written 2 file(s) total (2 rules)"
+  },
+  "commands": [
+    {
+      "cmd": "npm ci",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.\nnpm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported\nnpm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation\nnpm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\nnpm warn deprecated koa-router@14.0.0: Please use @koa/router instead, starting from v9! \nnpm warn allow-scripts 8 packages have install scripts not yet covered by allowScripts:\nnpm warn allow-scripts   esbuild@0.28.0 (postinstall: node install.js)\nnpm warn allow-scripts   fsevents@2.3.2 (install: (install scripts present))\nnpm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)\nnpm warn allow-scripts   tldjs@2.3.2 (postinstall: node ./bin/postinstall.js)\nnpm warn allow-scripts   fsevents@2.3.3 (install: (install scripts present))\nnpm warn allow-scripts   fsevents@2.3.3 (install: (install scripts present))\nnpm warn allow-scripts   workerd@1.20260426.1 (postinstall: node install.js)\nnpm warn allow-scripts   esbuild@0.27.3 (postinstall: node install.js)\nnpm warn allow-scripts\nnpm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.",
+      "stdout": "> nab-api@1.0.0 prepare\n> husky\n\n\nadded 612 packages, and audited 613 packages in 12s\n\n176 packages are looking for funding\n  run `npm fund` for details\n\n7 vulnerabilities (1 low, 2 moderate, 4 high)\n\nTo address issues that do not require attention, run:\n  npm audit fix\n\nTo address all issues (including breaking changes), run:\n  npm audit fix --force\n\nRun `npm audit` for details."
+    },
+    {
+      "cmd": "npm run lint",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "> nab-api@1.0.0 lint\n> eslint\n\n\n/Users/atr/code/nab-api/src/api.ts\n   72:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n   98:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  151:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  152:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  154:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  166:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  178:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  193:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  223:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/browser.ts\n   70:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  241:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/find-missing.ts\n  12:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/fix-state.ts\n  27:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/scraper.ts\n  159:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/state.ts\n  42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  63:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/test-db.ts\n    9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n   22:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n  233:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n/Users/atr/code/nab-api/src/xml-to-sqlite.ts\n  303:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any\n\n\u2716 20 problems (0 errors, 20 warnings)"
+    },
+    {
+      "cmd": "npm run typecheck",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "> nab-api@1.0.0 typecheck\n> tsc --noEmit"
+    },
+    {
+      "cmd": "npm run test",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "> nab-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.8 \u001b[39m\u001b[90m/Users/atr/code/nab-api\u001b[39m\n\n \u001b[32m\u2713\u001b[39m src/parser.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 20\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m dist/parser.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 22\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m4 passed\u001b[39m\u001b[22m\u001b[90m (4)\u001b[39m\n\u001b[2m   Start at \u001b[22m 00:25:23\n\u001b[2m   Duration \u001b[22m 1.10s\u001b[2m (transform 151ms, setup 0ms, import 1.81s, tests 43ms, environment 0ms)\u001b[22m"
+    },
+    {
+      "cmd": "npm run test:coverage",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "> nab-api@1.0.0 test:coverage\n> vitest run --coverage\n\n\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.8 \u001b[39m\u001b[90m/Users/atr/code/nab-api\u001b[39m\n      \u001b[2mCoverage enabled with \u001b[22m\u001b[33mv8\u001b[39m\n\n \u001b[32m\u2713\u001b[39m dist/parser.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 13\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m\u2713\u001b[39m src/parser.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 13\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m4 passed\u001b[39m\u001b[22m\u001b[90m (4)\u001b[39m\n\u001b[2m   Start at \u001b[22m 00:25:24\n\u001b[2m   Duration \u001b[22m 648ms\u001b[2m (transform 118ms, setup 0ms, import 776ms, tests 25ms, environment 0ms)\u001b[22m\n\n\u001b[34m % \u001b[39m\u001b[2mCoverage report from \u001b[22m\u001b[33mv8\u001b[39m\n------------------|---------|----------|---------|---------|--------------------\nFile              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  \n------------------|---------|----------|---------|---------|--------------------\nAll files         |    8.01 |     8.64 |    9.61 |    8.29 |                    \n browser.ts       |    2.35 |        0 |       0 |     2.4 | 13,25-250          \n discovery.ts     |       0 |        0 |       0 |       0 | 8-120              \n find-missing.ts  |       0 |        0 |     100 |       0 | 4-27               \n fix-state.ts     |       0 |        0 |       0 |       0 | 4-72               \n index.ts         |       0 |        0 |       0 |       0 | 6-67               \n parser.ts        |   22.07 |    18.96 |    62.5 |   22.97 | ...121-123,229-748 \n patch-state.ts   |       0 |        0 |     100 |       0 | 4-23               \n scraper.ts       |       0 |        0 |       0 |       0 | 25-167             \n state.ts         |       0 |        0 |       0 |       0 | 28-116             \n test-db.ts       |       0 |        0 |       0 |       0 | 5-250              \n xml-builder.ts   |       0 |        0 |       0 |       0 | 10-101             \n xml-to-sqlite.ts |       0 |        0 |       0 |       0 | 7-311              \n------------------|---------|----------|---------|---------|--------------------"
+    },
+    {
+      "cmd": "npm run build",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "> nab-api@1.0.0 build\n> tsc"
+    },
+    {
+      "cmd": "npx rulesync generate",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Written 2 rules\n    AGENTS.md\n    AGENTS.md\n\ud83c\udf89 All done! Written 2 file(s) total (2 rules)"
+    },
+    {
+      "cmd": "git diff --check",
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "generated_at": "2026-06-23T04:25:27.856620+00:00",
+  "recommendations": [
+    "Remove generated coverage/build artifacts from the PR and add `coverage/` to `.gitignore` if missing.",
+    "Remove `.agents/memories/` from the PR and add `.agents/memories/` to `.gitignore`.",
+    "Verify Rulesync target config: current output mentions only `AGENTS.md`, not `.cursor` or `.agents`.",
+    "Keep coverage as report-only for this repo; do not add a threshold until coverage is improved.",
+    "Track existing ESLint warnings as technical debt; do not fix them in the standards PR unless trivial.",
+    "Open a separate dependency-audit PR; do not mix audit fixes into the standards PR."
+  ],
+  "repo": {
+    "name": "nab-api",
+    "path": "/Users/atr/code/nab-api"
+  },
+  "score": {
+    "blockers": [
+      ".agents/memories is in the diff; agent memory should not be committed",
+      "Generated coverage/build artifacts are in the diff; remove them or add/update .gitignore"
+    ],
+    "value": 80,
+    "warnings": [
+      "Coverage is very low: 8.29% lines, 8.64% branches; keep report-only",
+      "ESLint passed but reported 20 warnings",
+      "Rulesync output only mentioned AGENTS.md; verify `.cursor` and `.agents` are generated by current config, not stale files",
+      "npm audit reported 7 vulnerabilities (1 low, 2 moderate, 4 high)"
+    ]
+  },
+  "standards": {
+    "path": "/Users/atr/code/repo-standards"
+  },
+  "standards_feedback": [
+    "Update repo-standards to explicitly forbid committing generated coverage artifacts in standards PRs.",
+    "Update repo-standards to explicitly forbid committing `.agents/memories/`.",
+    "Update the Rulesync template or docs if Cursor/Antigravity files are not actually generated by the current template."
+  ],
+  "state": {
+    "ai": {
+      "has_agents_md": true,
+      "has_antigravity_rules": true,
+      "has_cursor_rules": true,
+      "has_repo_policy": true,
+      "has_rulesync_config": true,
+      "has_rulesync_rules_dir": true,
+      "rule_files": [
+        ".rulesync/rules/00-org.md",
+        ".rulesync/rules/10-repo.md",
+        ".rulesync/rules/20-quality-gates.md",
+        ".rulesync/rules/30-deploy.md"
+      ],
+      "rulesync_mentions_agentsmd": true,
+      "rulesync_mentions_antigravity": true,
+      "rulesync_mentions_cursor": true
+    },
+    "changed": {
+      "agent_memories": [
+        ".agents/memories/10-repo.md",
+        ".agents/memories/20-quality-gates.md",
+        ".agents/memories/30-deploy.md"
+      ],
+      "files": [
+        ".agents/memories/10-repo.md",
+        ".agents/memories/20-quality-gates.md",
+        ".agents/memories/30-deploy.md",
+        ".agents/rules/10-repo.md",
+        ".agents/rules/20-quality-gates.md",
+        ".agents/rules/30-deploy.md",
+        ".cursor/rules/00-org.mdc",
+        ".cursor/rules/10-repo.mdc",
+        ".cursor/rules/20-quality-gates.mdc",
+        ".cursor/rules/30-deploy.mdc",
+        ".github/workflows/ai-rules-check.yml",
+        ".gitignore",
+        ".repo-policy.yml",
+        ".rulesync/rules/00-org.md",
+        ".rulesync/rules/10-repo.md",
+        ".rulesync/rules/20-quality-gates.md",
+        ".rulesync/rules/30-deploy.md",
+        "AGENTS.md",
+        "coverage/base.css",
+        "coverage/block-navigation.js",
+        "coverage/browser.ts.html",
+        "coverage/discovery.ts.html",
+        "coverage/favicon.png",
+        "coverage/find-missing.ts.html",
+        "coverage/fix-state.ts.html",
+        "coverage/index.html",
+        "coverage/index.ts.html",
+        "coverage/parser.ts.html",
+        "coverage/patch-state.ts.html",
+        "coverage/prettify.css",
+        "coverage/prettify.js",
+        "coverage/scraper.ts.html",
+        "coverage/sort-arrow-sprite.png",
+        "coverage/sorter.js",
+        "coverage/state.ts.html",
+        "coverage/test-db.ts.html",
+        "coverage/xml-builder.ts.html",
+        "coverage/xml-to-sqlite.ts.html",
+        "package-lock.json",
+        "package.json",
+        "rulesync.jsonc"
+      ],
+      "generated_artifacts": [
+        "coverage/base.css",
+        "coverage/block-navigation.js",
+        "coverage/browser.ts.html",
+        "coverage/discovery.ts.html",
+        "coverage/favicon.png",
+        "coverage/find-missing.ts.html",
+        "coverage/fix-state.ts.html",
+        "coverage/index.html",
+        "coverage/index.ts.html",
+        "coverage/parser.ts.html",
+        "coverage/patch-state.ts.html",
+        "coverage/prettify.css",
+        "coverage/prettify.js",
+        "coverage/scraper.ts.html",
+        "coverage/sort-arrow-sprite.png",
+        "coverage/sorter.js",
+        "coverage/state.ts.html",
+        "coverage/test-db.ts.html",
+        "coverage/xml-builder.ts.html",
+        "coverage/xml-to-sqlite.ts.html"
+      ],
+      "risky_deploy_files": [],
+      "secretish_files": [],
+      "suspicious_agents_paths": []
+    },
+    "docs": {
+      "has_docs_dir": false,
+      "has_readme": true,
+      "readme_mentions_ai": true,
+      "readme_mentions_checks": true,
+      "readme_mentions_deploy_or_release": true,
+      "readme_mentions_local_dev": true
+    },
+    "package": {
+      "has_commitlint_dependency": true,
+      "has_husky": true,
+      "has_lint_staged": true,
+      "has_package_json": true,
+      "has_rulesync_dependency": true,
+      "package_manager": "npm",
+      "scripts": {
+        "build": "tsc",
+        "db:build": "tsx src/xml-to-sqlite.ts",
+        "db:seed:local": "wrangler d1 execute nab-api --local --file=output/bible-d1.sql",
+        "dev": "wrangler dev src/api.ts",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "lint": "eslint",
+        "lint:fix": "eslint --fix",
+        "prepare": "husky",
+        "start": "tsx src/index.ts",
+        "test": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "typecheck": "tsc --noEmit"
+      },
+      "tools": [
+        "@commitlint/cli",
+        "eslint",
+        "husky",
+        "lint-staged",
+        "prettier",
+        "rulesync",
+        "typescript",
+        "vitest"
+      ]
+    },
+    "workflows": {
+      "files": [
+        ".github/workflows/ai-rules-check.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/release-please.yml",
+        ".github/workflows/semantic-pull-request.yml"
+      ],
+      "has_ai_rules_workflow": true,
+      "has_release_please": true,
+      "has_semantic_pr_workflow": true,
+      "mentions_coverage": true,
+      "mentions_deploy": true,
+      "mentions_lint": true,
+      "mentions_test": true,
+      "mentions_typecheck": true,
+      "workflow_count": 5
+    }
+  },
+  "verdict": "Not ready to merge. Clean up blockers first."
+}

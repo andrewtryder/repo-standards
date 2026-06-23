@@ -1,0 +1,33 @@
+name: example-typescript-library
+profile: typescript-library
+package_manager: npm
+node_version: "24"
+
+commands:
+  install: npm ci
+  format_check: npm run format:check --if-present
+  lint: npm run lint --if-present
+  typecheck: npm run typecheck --if-present
+  test: npm test --if-present
+  coverage: npm run test:coverage --if-present
+  build: npm run build --if-present
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+
+release:
+  release_please: true
+  strategy: node
+  production_branch: main
+
+deploy:
+  provider: npm
+  workflow: repo-specific
+
+migration_notes: >
+  Replace node_version with the version used in your repo.
+  Coverage default is report-only; add --if-present or a script check as needed.
+  Release Please uses the Node strategy for package.json version bumps.

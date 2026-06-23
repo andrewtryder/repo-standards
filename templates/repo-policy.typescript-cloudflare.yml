@@ -1,0 +1,34 @@
+name: example-worker
+profile: typescript-cloudflare-worker
+package_manager: npm
+node_version: "24"
+
+commands:
+  install: npm ci
+  format_check: npm run format:check
+  lint: npm run lint
+  typecheck: npm run typecheck
+  test: npm test
+  coverage: npm run test:coverage
+  build: npm run build
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+
+release:
+  release_please: true
+  strategy: simple
+  production_branch: main
+
+deploy:
+  provider: cloudflare
+  workflow: repo-specific
+  required_environment: production
+
+migration_notes: >
+  Cloudflare Workers use the simple Release Please strategy.
+  The deploy provider is set to cloudflare; actual deployment stays in a
+  repo-specific workflow referenced by the workflow field.

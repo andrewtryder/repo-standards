@@ -1,0 +1,33 @@
+name: example-ha-component
+profile: python-home-assistant
+python_version: "3.12"
+package_manager: pip-requirements
+
+commands:
+  install: python -m pip install -r requirements.txt
+  install_dev: python -m pip install -r requirements.txt -r requirements-dev.txt
+  format_check: ruff format --check .
+  lint: ruff check .
+  typecheck: ""
+  test: pytest
+  coverage: coverage run -m pytest && coverage report
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+
+release:
+  release_please: false
+  production_branch: main
+
+deploy:
+  provider: repo-specific
+  workflow: repo-specific
+
+migration_notes: >
+  Home Assistant custom components follow the HA add-on pattern.
+  Tests may use pytest with homeassistant conftest fixtures.
+  Coverage is report-only; many HA components have minimal test suites.
+  Python typechecking (mypy, pyright) is adopted repo-by-repo.

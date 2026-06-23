@@ -1,0 +1,37 @@
+name: example-mixed-repo
+profile: mixed-special
+package_manager: mixed
+node_version: "24"
+python_version: "3.12"
+
+commands:
+  install: echo "See repo-specific setup instructions"
+  install_dev: echo "See repo-specific setup instructions"
+  format_check: echo "See repo-specific format check"
+  lint: echo "See repo-specific lint command"
+  typecheck: echo "See repo-specific typecheck command"
+  test: echo "See repo-specific test command"
+  coverage: echo "See repo-specific coverage command"
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+
+release:
+  release_please: true
+  strategy: simple
+  manifest_file: .release-please-manifest.json
+  config_file: release-please-config.json
+  production_branch: main
+
+deploy:
+  provider: repo-specific
+  workflow: repo-specific
+
+migration_notes: >
+  Mixed repos (Node + Python, monorepos, or custom setups) should:
+  - Prefer manifest mode for Release Please to manage multiple components.
+  - Override commands with repo-specific scripts.
+  - Replace placeholder echo commands with real checks.
