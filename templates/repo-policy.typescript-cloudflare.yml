@@ -32,3 +32,4 @@ migration_notes: >
   Cloudflare Workers use the simple Release Please strategy.
   The deploy provider is set to cloudflare; actual deployment stays in a
   repo-specific workflow referenced by the workflow field.
+  The operational source of truth for Node version is `.nvmrc` (root-level file).

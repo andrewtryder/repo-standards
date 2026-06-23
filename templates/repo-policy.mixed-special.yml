@@ -35,3 +35,4 @@ migration_notes: >
   - Prefer manifest mode for Release Please to manage multiple components.
   - Override commands with repo-specific scripts.
   - Replace placeholder echo commands with real checks.
+  - If Node projects are part of the mix, add a root `.nvmrc` file.

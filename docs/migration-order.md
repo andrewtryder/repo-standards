@@ -5,23 +5,25 @@
 Migrating a repo to this standard means performing the following steps:
 
 1. **Add `.repo-policy.yml`** defining the repo profile, commands, quality gates, release, and deploy settings.
-2. **Add rulesync configuration and source rules** (`.rulesync/rules/*.md`, `rulesync.jsonc`).
-3. **Generate AI/editor outputs** using `npx rulesync generate`. Verify all targets produce expected files:
+2. **Add `.nvmrc`** (for Node repos) with the project's Node.js version.
+3. **Add rulesync configuration and source rules** (`.rulesync/rules/*.md`, `rulesync.jsonc`).
+4. **Generate AI/editor outputs** using `npx rulesync generate`. Verify all targets produce expected files:
    ```sh
    find AGENTS.md .cursor .agents .rulesync -maxdepth 4 -type f -print | sort
    ```
    Commit generated files: `AGENTS.md`, `.cursor/rules/*.mdc`, `.agents/rules/*.md`, and `.agents/memories/*.md` (if `antigravity-ide` target is enabled).
-4. **Add semantic PR check** (`templates/workflows/semantic-pull-request.yml`).
-5. **Add AI rules check** (`templates/workflows/ai-rules-check.yml`).
-6. **Preserve existing deploy behavior** -- do not modify deploy/release workflows unless explicitly required.
-7. **Run coverage checks**: Run the coverage command for the repo. Remove the local generated `coverage/` directory after running. Ensure `coverage/` is in `.gitignore`. Stage deletion of previously tracked coverage files if they exist (these will appear as `D coverage/...` which is acceptable cleanup).
-8. **Check for non-dot `agents/` paths**:
-   ```sh
-   find agents -maxdepth 3 -type f -print 2>/dev/null || true
-   ```
-   Expected output should be empty. If it is not, verify those paths are intentional and documented.
-9. **Run the assessment script** (`scripts/assess_repo_standards_migration_v3.py`) and resolve any blockers.
-10. **Configure branch protection** rules with required checks (see `docs/branch-protection.md`).
+5. **Add Dependabot** by copying `templates/dependabot.yml` to `.github/dependabot.yml`.
+6. **Add semantic PR check** (`templates/workflows/semantic-pull-request.yml`).
+7. **Add AI rules check** (`templates/workflows/ai-rules-check.yml`).
+8. **Preserve existing deploy behavior** -- do not modify deploy/release workflows unless explicitly required.
+9. **Run coverage checks**: Run the coverage command for the repo. Remove the local generated `coverage/` directory after running. Ensure `coverage/` is in `.gitignore`. Stage deletion of previously tracked coverage files if they exist (these will appear as `D coverage/...` which is acceptable cleanup).
+10. **Check for non-dot `agents/` paths**:
+    ```sh
+    find agents -maxdepth 3 -type f -print 2>/dev/null || true
+    ```
+    Expected output should be empty. If it is not, verify those paths are intentional and documented.
+11. **Run the assessment script** (`scripts/assess_repo_standards_migration_v3.py`) and resolve any blockers.
+12. **Configure branch protection** rules with required checks (see `docs/branch-protection.md`).
 
 ## Pilot
 

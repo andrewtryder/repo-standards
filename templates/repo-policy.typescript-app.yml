@@ -28,6 +28,8 @@ deploy:
 
 migration_notes: >
   Set node_version to your project's Node version.
+  The operational source of truth for Node version is `.nvmrc` (root-level file).
+  `node_version` in this file is descriptive; `.nvmrc` drives CI and local setup.
   If this repo publishes a package, enable release_please and choose the
   appropriate strategy (node or simple).
   For apps that deploy but do not publish, set release_please: false.

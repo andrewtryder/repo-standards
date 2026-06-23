@@ -1,0 +1,72 @@
+name: Python CI (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: "Python version (from .python-version or similar)"
+        required: false
+        type: string
+        default: "3.12"
+      install_command:
+        description: "Install command"
+        required: false
+        type: string
+        default: |
+          python -m pip install --upgrade pip && \
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && \
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi && \
+          if [ -f requirements_test.txt ]; then pip install -r requirements_test.txt; fi && \
+          pip install ruff pytest coverage
+      format_check_command:
+        description: "Format check command"
+        required: false
+        type: string
+        default: "ruff format --check ."
+      lint_command:
+        description: "Lint command"
+        required: false
+        type: string
+        default: "ruff check ."
+      test_command:
+        description: "Test + coverage command"
+        required: false
+        type: string
+        default: "coverage run -m pytest"
+      coverage_args:
+        description: "Extra args for coverage"
+        required: false
+        type: string
+        default: "--report-only"
+
+permissions:
+  contents: read
+
+jobs:
+  python-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ inputs.python_version }}"
+          cache: pip
+
+      - name: Install
+        run: ${{ inputs.install_command }}
+
+      - name: Format check
+        run: ${{ inputs.format_check_command }}
+
+      - name: Lint
+        run: ${{ inputs.lint_command }}
+
+      # Python typechecking (mypy, pyright, etc.) is adopted repo-by-repo.
+      # Add a typecheck step here when the repo is ready.
+
+      - name: Test + coverage
+        run: |
+          ${{ inputs.test_command }}
+          coverage report
+        # Coverage is report-only by default (${{ inputs.coverage_args }}).
+        # Add --fail-under=<threshold> to the coverage command when ready.

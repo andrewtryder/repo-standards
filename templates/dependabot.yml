@@ -1,7 +1,11 @@
 # Dependabot configuration
 # Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
 #
-# Python dependency update strategy is future/optional and not yet implemented.
+# This is the baseline template. Repos should copy this file to .github/dependabot.yml
+# and customize it for their project.
+#
+# For monorepos or repos with nested projects (e.g., packages/*, apps/*),
+# add additional directory entries for each sub-project.
 
 version: 2
 updates:
@@ -15,12 +19,17 @@ updates:
     schedule:
       interval: "weekly"
     versioning-strategy: increase
-    # Allow up to 5 open PRs for npm at a time
     open-pull-requests-limit: 5
-    # Group development dependency updates into fewer PRs
     groups:
       development-dependencies:
         dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Python dependency update strategy is adopted repo-by-repo.
+    # Pin groups and open-pull-requests-limit as needed.

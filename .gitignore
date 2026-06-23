@@ -5,3 +5,8 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# Generated outputs from running Rulesync locally in this repo
+.agents/
+.cursor/
+AGENTS.md

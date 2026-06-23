@@ -1,4 +1,4 @@
-# Repo Standard v1.2
+# Repo Standard v1.3
 
 ## 1. Commit and PR policy
 
@@ -134,13 +134,23 @@ docs
 
 A gate may be explicitly disabled in `.repo-policy.yml` only when it is not applicable.
 
+### Node version management
+
+Node/TypeScript repositories **must have a root `.nvmrc` file** specifying the project's Node.js version (e.g., `24`).
+
+- `.nvmrc` is the operational source of truth for local development (`nvm use`, `fnm`, etc.) and CI (`node-version-file`).
+- The `node_version` field in `.repo-policy.yml` is **descriptive** -- it documents the intended version, but `.nvmrc` drives actual setup.
+- CI workflow templates use `node-version-file: ".nvmrc"` instead of hardcoded `node-version`.
+
+A template `.nvmrc` (with `24`) is at `configs/node/.nvmrc`.
+
 ### Reusable workflow inputs
 
 When writing CI workflows, prefer using `workflow_call` with inputs so that runtime versions and commands are configurable per-repo:
 
 | Input | Default | Purpose |
 |---|---|---|
-| `node_version` | `"24"` | Node.js version for setup-node |
+| `node_version` | `""` (uses `.nvmrc`) | Node.js version for setup-node |
 | `python_version` | `"3.12"` | Python version for setup-python |
 | `install_command` | `"npm ci"` or pip command | Install dependencies |
 | `lint_command` | `"npm run lint"` or `"ruff check ."` | Lint check |
@@ -149,7 +159,16 @@ When writing CI workflows, prefer using `workflow_call` with inputs so that runt
 | `coverage_command` | `"npm run test:coverage"` or coverage run | Coverage report |
 | `build_command` | `"npm run build"` or `""` | Build step |
 
-If `.repo-policy.yml` is not wired into workflow inputs yet, it serves a **descriptive** role: it documents what each repo's commands and gates should be, even if they are hardcoded in workflow files.
+### Reusable workflows (long-term preferred)
+
+The preferred long-term CI standard is **GitHub reusable workflows** defined in repo-standards and called from downstream repos. This reduces template drift and ensures updates flow automatically.
+
+See `docs/template-drift.md` for details and caller examples.
+
+Reusable workflow templates are at:
+
+- `templates/workflows/node-ci.reusable.yml`
+- `templates/workflows/python-ci.reusable.yml`
 
 ## 5. Coverage policy
 
@@ -179,6 +198,8 @@ legacy/mixed repos: report-only until stable
 ```
 
 Do not fail a useful bugfix because a legacy repo has poor historical coverage. Prefer changed-code coverage first.
+
+Coverage remains **report-only** unless a repo has stable thresholds.
 
 ### `.gitignore` guidance
 
@@ -250,7 +271,7 @@ Each profile template (under `templates/repo-policy.*.yml`) includes:
 |---|---|
 | `name` | Descriptive example name |
 | `profile` | Profile identifier |
-| `node_version` / `python_version` / `package_manager` | Runtime configuration |
+| `node_version` / `python_version` / `package_manager` | Runtime configuration (descriptive; `.nvmrc` is operational for Node) |
 | `commands` | Install, format, lint, typecheck, test, coverage, build |
 | `quality_gates` | Required checks |
 | `release` | Release Please configuration |
@@ -265,15 +286,42 @@ Python typechecking (mypy, pyright, etc.) is **adopted repo-by-repo**. It is not
 
 ### Dependabot
 
-Dependabot should be configured for GitHub Actions and npm dependencies. A template workflow (`templates/workflows/dependabot.yml`) is provided with the minimum required configuration.
+Dependabot is the baseline dependency update tool for all repositories.
 
-See `templates/workflows/dependabot.yml` for the base template.
+Copy `templates/dependabot.yml` to `.github/dependabot.yml` in each repo.
 
-### Python dependencies
+The template includes weekly updates for:
 
-Python dependency update strategy (e.g., Dependabot for pip, or Renovate) is future/optional and not yet implemented in this standard.
+- GitHub Actions
+- npm (root directory, with grouped dev dependency updates)
+- pip (root directory)
 
-## 9. Branch protection
+For monorepos or repos with nested projects, add additional directory entries for each sub-project.
+
+See `docs/dependency-updates.md` for customization guidance.
+
+## 9. Secret scanning
+
+A baseline secret scanning workflow is at `templates/workflows/secret-scan.yml`.
+
+The workflow uses **TruffleHog** to scan PR diffs for verified secrets. It is configured conservatively (`--results=verified`) to reduce false positives.
+
+Branch protection should require the Secret Scan check once it passes consistently in a repo.
+
+See `docs/security-scanning.md` for configuration and recommended workflow.
+
+## 10. Template drift management
+
+Repo-standards supports two approaches for managing template drift:
+
+| Approach | When to use |
+|---|---|
+| **Copied templates** (default) | Initial migration, early adoption. Templates are copied into each repo. Drift must be reassessed manually. |
+| **GitHub reusable workflows** (preferred long-term) | After the standard stabilizes. Workflows live in repo-standards and are called from downstream repos. Updates flow automatically. |
+
+See `docs/template-drift.md` for caller examples and migration guidance.
+
+## 11. Branch protection
 
 After migration, the following required checks should be configured in branch protection rules for the default branch:
 
@@ -283,12 +331,13 @@ After migration, the following required checks should be configured in branch pr
 | AI Rules | Always (if `.rulesync/` is present) |
 | CI | Always |
 | Docs | Always |
+| Secret Scan | Recommended (once it passes consistently) |
 | Deploy check | When deploy workflow is configured |
 | Release check | When Release Please is configured |
 
 See `docs/branch-protection.md` for details.
 
-## 10. Blocker vs warning guidance
+## 12. Blocker vs warning guidance
 
 When assessing a standards migration PR, the assessor should distinguish between:
 
@@ -309,3 +358,6 @@ When assessing a standards migration PR, the assessor should distinguish between
 - npm audit vulnerabilities
 - Legacy stale agent files being removed
 - Missing `rulesync` devDependency (acceptable initially, pin later)
+- Missing `.nvmrc` in a Node repo (recommended but not yet required)
+- Missing `.github/dependabot.yml` (recommended but not yet required)
+- Missing secret scanning workflow (recommended but not yet required)

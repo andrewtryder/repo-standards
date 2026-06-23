@@ -1,0 +1,77 @@
+name: Node CI (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        description: "Node.js version (from .nvmrc)"
+        required: false
+        type: string
+        default: ""
+      install_command:
+        description: "Install command"
+        required: false
+        type: string
+        default: "npm ci"
+      lint_command:
+        description: "Lint command (--if-present)"
+        required: false
+        type: string
+        default: "npm run lint --if-present"
+      typecheck_command:
+        description: "Typecheck command (--if-present)"
+        required: false
+        type: string
+        default: "npm run typecheck --if-present"
+      test_command:
+        description: "Test command (--if-present)"
+        required: false
+        type: string
+        default: "npm test --if-present"
+      coverage_command:
+        description: "Coverage command (--if-present)"
+        required: false
+        type: string
+        default: "npm run test:coverage --if-present"
+      build_command:
+        description: "Build command (--if-present)"
+        required: false
+        type: string
+        default: "npm run build --if-present"
+
+permissions:
+  contents: read
+
+jobs:
+  node-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "${{ inputs.node_version && '' || '.nvmrc' }}"
+          node-version: "${{ inputs.node_version || '' }}"
+          cache: npm
+
+      - name: Install
+        run: ${{ inputs.install_command }}
+
+      - name: Format check
+        run: ${{ inputs.lint_command }}
+        # Note: format check is not included in the standard Node scripts.
+        # Add a separate format:check command if needed.
+
+      - name: Lint
+        run: ${{ inputs.lint_command }}
+
+      - name: Typecheck
+        run: ${{ inputs.typecheck_command }}
+
+      - name: Test
+        run: ${{ inputs.test_command }}
+
+      - name: Coverage
+        run: ${{ inputs.coverage_command }}
+
+      - name: Build
+        run: ${{ inputs.build_command }}

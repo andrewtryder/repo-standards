@@ -56,6 +56,19 @@ ESLINT_PROBLEMS_RE = re.compile(r"✖\s+(\d+)\s+problems?\s+\((\d+)\s+errors?,\s
 NPM_AUDIT_RE = re.compile(r"(\d+)\s+vulnerabilities\s+\(([^)]+)\)")
 
 
+def _has_secret_scan_workflow(repo: Path) -> bool:
+    """Check if any workflow file references a secret scanning tool."""
+    workflows = repo / ".github" / "workflows"
+    if not workflows.exists():
+        return False
+    for p in workflows.glob("*"):
+        if p.is_file() and p.suffix.lower() in {".yml", ".yaml"}:
+            text = read_text(p).lower()
+            if "trufflehog" in text or "secret" in text or "gitleaks" in text:
+                return True
+    return False
+
+
 def run(cmd: list[str], cwd: Path, timeout: int = 120) -> dict[str, Any]:
     try:
         p = subprocess.run(
@@ -177,6 +190,9 @@ def package_state(repo: Path) -> dict[str, Any]:
     return {
         "has_package_json": bool(package),
         "package_manager": package_manager,
+        "has_nvmrc": exists(repo, ".nvmrc"),
+        "has_dependabot": exists(repo, ".github/dependabot.yml"),
+        "has_secret_scan_workflow": _has_secret_scan_workflow(repo),
         "scripts": scripts,
         "has_rulesync_dependency": "rulesync" in deps,
         "has_commitlint_dependency": "@commitlint/cli" in deps or "commitlint" in deps,
@@ -467,6 +483,12 @@ def score_report(
             warnings.append("Node repo has no build script")
         if not pkg["has_rulesync_dependency"]:
             warnings.append("rulesync is not pinned as a devDependency; acceptable initially, but pin later")
+        if not pkg["has_nvmrc"]:
+            warnings.append("Node repo missing `.nvmrc`; recommended but not yet required")
+    if not pkg["has_dependabot"]:
+        warnings.append("Missing `.github/dependabot.yml`; recommended but not yet required")
+    if not pkg["has_secret_scan_workflow"]:
+        warnings.append("Missing secret scanning workflow; recommended but not yet required")
 
     # Docs check
     if not docs["readme_mentions_checks"]:

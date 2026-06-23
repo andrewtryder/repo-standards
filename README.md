@@ -1,4 +1,4 @@
-# Repository Standards Standard v1.2
+# Repository Standards Standard v1.3
 
 This blueprint defines the baseline for all repositories.
 
@@ -35,6 +35,7 @@ Contains starter configuration files that repos **should copy** (not reference b
 | Path | Purpose |
 |---|---|
 | `configs/node/commitlint.config.mjs` | commitlint config for Node repos |
+| `configs/node/.nvmrc` | Template `.nvmrc` with Node 24 (copy to repo root) |
 | `configs/python/.pre-commit-config.yaml` | Pre-commit hook config for Python repos |
 | `configs/python/ruff.toml` | Ruff linter/formatter config for Python repos |
 
@@ -42,13 +43,15 @@ These are **examples to copy and customize**. Repos should copy the relevant con
 
 ### `templates/`
 
-Contains reusable YAML templates that repos **should copy and adapt** (`templates/repo-policy.*.yml` for repo policy files, `templates/workflows/*.yml` for GitHub Actions workflows).
+Contains reusable YAML templates that repos **should copy and adapt** (for early migration) or reference via reusable workflows (preferred long-term).
 
 | Area | Contents |
 |---|---|
 | `templates/repo-policy.*.yml` | Repo policy profiles for each class (python-service, typescript-cloudflare-worker, typescript-library, typescript-app, python-home-assistant, mixed-special) |
-| `templates/workflows/*.yml` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, dependabot) |
+| `templates/dependabot.yml` | Dependabot configuration for GitHub Actions, npm, and pip |
 | `templates/rulesync.jsonc` | Rulesync configuration targeting AGENTS.md, Cursor, and Antigravity IDE |
+| `templates/workflows/*.yml` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, secret scan) |
+| `templates/workflows/*.reusable.yml` | Reusable CI workflow definitions (Node, Python) for long-term drift reduction |
 
 Repos using these templates should copy the relevant files into their repo at the appropriate paths (`.github/workflows/*.yml`, etc.) and make repo-specific adjustments.
 
@@ -59,7 +62,7 @@ Contains the **canonical AI/editor rules** that define organization-wide enginee
 | File | Scope |
 |---|---|
 | `ai/rules/00-org.md` | Organization-wide rules (commits, CI safety, secrets) |
-| `ai/rules/10-typescript.md` | TypeScript/JavaScript standards |
+| `ai/rules/10-typescript.md` | TypeScript/JavaScript standards (now requires `.nvmrc`) |
 | `ai/rules/20-python.md` | Python standards |
 
 Each downstream repo copies these into its `.rulesync/rules/*.md` directory. Rulesync then generates:
@@ -76,6 +79,9 @@ Each downstream repo copies these into its `.rulesync/rules/*.md` directory. Rul
 | `docs/repo-standard-v1.md` | Full standard specification |
 | `docs/migration-order.md` | Migration roadmap and what "migration" means |
 | `docs/branch-protection.md` | Required branch protection checks after migration |
+| `docs/dependency-updates.md` | Dependabot configuration and customization guide |
+| `docs/security-scanning.md` | Secret scanning with TruffleHog |
+| `docs/template-drift.md` | Managing template drift (copied vs reusable workflows) |
 
 ### `scripts/`
 
@@ -109,6 +115,12 @@ The `antigravity-ide` Rulesync target generates both `.agents/rules/*.md` and `.
 - Local `commitlint` is **optional/recommended** for Node repos. Pre-commit hooks are **optional/recommended** for Python repos.
 - If `commitlint` has `subject-case` disabled, this is intentional: squash-merge PR titles (not individual commits) are the release source of truth.
 
+## Node version management
+
+Node/TypeScript repositories **must have a root `.nvmrc` file**. This is the operational source of truth for local development and CI. CI workflows use `node-version-file: ".nvmrc"` instead of hardcoded `node-version`.
+
+The `node_version` field in `.repo-policy.yml` is descriptive; `.nvmrc` drives actual setup.
+
 ## Coverage policy
 
 Coverage is **phased and report-only by default**. Repos adopt strict thresholds when ready.
@@ -137,13 +149,21 @@ Previously tracked `coverage/` files may appear as `D coverage/...` in `git stat
 | Node package / library | `release-please.node.yml` | Bumps `package.json` |
 | Mixed / monorepo | `release-please.manifest.yml` | Requires manifest files |
 
-## Branch protection
-
-After migration, configure required checks: Semantic Pull Request, AI Rules, CI, Docs, and deploy/release where applicable. See `docs/branch-protection.md`.
-
 ## Dependency updates
 
-Dependabot should be configured for GitHub Actions and npm. See `templates/workflows/dependabot.yml`.
+Dependabot should be configured for GitHub Actions, npm, and pip. See `templates/dependabot.yml` and `docs/dependency-updates.md`.
+
+## Secret scanning
+
+A baseline TruffleHog secret scan is at `templates/workflows/secret-scan.yml`. See `docs/security-scanning.md`.
+
+## Template drift management
+
+Two approaches: **copied templates** (early migration) and **reusable workflows** (long-term preferred). See `docs/template-drift.md`.
+
+## Branch protection
+
+After migration, configure required checks: Semantic Pull Request, AI Rules, CI, Docs, Secret Scan (recommended), and deploy/release where applicable. See `docs/branch-protection.md`.
 
 ## Enforcement levels
 
@@ -159,6 +179,7 @@ Dependabot should be configured for GitHub Actions and npm. See `templates/workf
 
 ### Required for TypeScript / JavaScript
 
+- Root `.nvmrc` file.
 - npm first, because current repos mostly use package-lock.
 - `npm ci`.
 - `npm run format:check` if present.
@@ -212,3 +233,6 @@ When assessing a standards migration PR, distinguish between:
 - npm audit vulnerabilities
 - Legacy stale agent files being removed
 - Missing `rulesync` devDependency (acceptable initially, pin later)
+- Missing `.nvmrc` in a Node repo
+- Missing `.github/dependabot.yml`
+- Missing secret scanning workflow

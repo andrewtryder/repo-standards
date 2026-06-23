@@ -29,5 +29,7 @@ deploy:
 
 migration_notes: >
   Replace node_version with the version used in your repo.
+  The operational source of truth for Node version is `.nvmrc` (root-level file).
+  `node_version` in this file is descriptive; `.nvmrc` drives CI and local setup.
   Coverage default is report-only; add --if-present or a script check as needed.
   Release Please uses the Node strategy for package.json version bumps.
