@@ -38,6 +38,10 @@ Site updates ship with merges to `main`. Release Please tags govern changelog an
 2. **Build and deployment → Source:** GitHub Actions
 3. After the first successful `docs-pages` workflow run, the site is available at `https://andrewtryder.github.io/repo-standards/`
 
+If Pages is not yet enabled, the `Docs Pages` workflow build step may succeed while deploy fails with `Failed to create deployment (status: 404)`. Enable Pages in repository settings first. Some GitHub plans or organization policies block Pages until the repository is public and Pages is turned on manually.
+
+If the API returns `Your current plan does not support GitHub Pages for this repository`, enable Pages through the GitHub UI or upgrade the account plan, then re-run the workflow.
+
 ## Repository metadata
 
 Set description, homepage, and topics with `gh` or the helper script:
