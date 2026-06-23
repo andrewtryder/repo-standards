@@ -80,9 +80,12 @@ jobs:
           test -f docs/ai-rules-maintenance.md
           test -f docs/profiles.md
           test -f docs/detection.md
+          test -f docs/using-repo-standards.md
+          test -f docs/reusable-workflows.md
           test -f scripts/assess_repo_standards.py
           test -f scripts/detect_repo_standard.py
           test -f scripts/check_docs_ai_rule_sync.py
+          test -f scripts/plan_repo_standards_adoption.py
           test -f profiles/detection.yml
           test -f templates/rulesync.jsonc
           test -d ai/rules
