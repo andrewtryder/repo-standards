@@ -19,6 +19,9 @@ jobs:
           test -f README.md
           test -f .repo-policy.yml
           test -f AGENTS.md
+          test -f CONTRIBUTING.md
+          test -f LICENSE || test -f LICENSE.md
+          test -f .github/PULL_REQUEST_TEMPLATE.md || test -f PULL_REQUEST_TEMPLATE.md
 
       - name: README contains required concepts
         run: |

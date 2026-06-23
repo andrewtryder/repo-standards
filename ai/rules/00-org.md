@@ -34,3 +34,16 @@ Do not modify release or deploy workflows unless the task explicitly requires it
 ## Secrets
 
 Never commit secrets, tokens, credentials, private keys, `.env` files, or generated production configuration.
+
+## Repository governance
+
+Repositories should include:
+
+- `CONTRIBUTING.md`
+- `LICENSE` or `LICENSE.md`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+
+Never modify license terms unless the user explicitly asks for a license change.
+Do not add an open-source license to a private/proprietary repository unless explicitly instructed.
+When adding a license file, match the license type to the repository visibility: MIT or similar for public/open-source repos, proprietary/all-rights-reserved for private repos.
+Check `.repo-policy.yml` for the `visibility` and `license` fields to determine the correct license.

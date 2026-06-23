@@ -13,7 +13,8 @@ Migrating a repo to this standard means performing the following steps:
    ```
    Commit generated files: `AGENTS.md`, `.cursor/rules/*.mdc`, `.agents/rules/*.md`, and `.agents/memories/*.md` (if `antigravity-ide` target is enabled).
 5. **Add Dependabot** by copying `templates/dependabot.yml` to `.github/dependabot.yml`.
-6. **Add semantic PR check** (`templates/workflows/semantic-pull-request.yml`).
+6. **Add governance files**: `CONTRIBUTING.md`, `LICENSE` (or `LICENSE.md`), `.github/PULL_REQUEST_TEMPLATE.md`. Set `visibility` and `license` in `.repo-policy.yml`.
+7. **Add semantic PR check** (`templates/workflows/semantic-pull-request.yml`).
 7. **Add AI rules check** (`templates/workflows/ai-rules-check.yml`).
 8. **Preserve existing deploy behavior** -- do not modify deploy/release workflows unless explicitly required.
 9. **Run coverage checks**: Run the coverage command for the repo. Remove the local generated `coverage/` directory after running. Ensure `coverage/` is in `.gitignore`. Stage deletion of previously tracked coverage files if they exist (these will appear as `D coverage/...` which is acceptable cleanup).

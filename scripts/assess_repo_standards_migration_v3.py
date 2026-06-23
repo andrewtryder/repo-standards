@@ -69,6 +69,23 @@ def _has_secret_scan_workflow(repo: Path) -> bool:
     return False
 
 
+def _has_pr_template(repo: Path) -> bool:
+    """Check for a pull request template."""
+    return (
+        exists(repo, ".github/PULL_REQUEST_TEMPLATE.md")
+        or exists(repo, "PULL_REQUEST_TEMPLATE.md")
+        or exists(repo, ".github/pull_request_template.md")
+    )
+
+
+def _has_license(repo: Path) -> bool:
+    """Check for a license file."""
+    for name in ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "LICENCE.md"):
+        if exists(repo, name):
+            return True
+    return False
+
+
 def run(cmd: list[str], cwd: Path, timeout: int = 120) -> dict[str, Any]:
     try:
         p = subprocess.run(
@@ -489,6 +506,14 @@ def score_report(
         warnings.append("Missing `.github/dependabot.yml`; recommended but not yet required")
     if not pkg["has_secret_scan_workflow"]:
         warnings.append("Missing secret scanning workflow; recommended but not yet required")
+
+    # Governance files (warnings only for existing repos)
+    if not exists(repo, "CONTRIBUTING.md"):
+        warnings.append("Missing `CONTRIBUTING.md`; recommended but not yet required")
+    if not _has_pr_template(repo):
+        warnings.append("Missing pull request template (`.github/PULL_REQUEST_TEMPLATE.md`); recommended but not yet required")
+    if not _has_license(repo):
+        warnings.append("Missing `LICENSE` or `LICENSE.md`; recommended but not yet required. Choose MIT for public repos, proprietary for private repos.")
 
     # Docs check
     if not docs["readme_mentions_checks"]:

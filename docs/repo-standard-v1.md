@@ -217,7 +217,7 @@ htmlcov/
 
 Previously tracked `coverage/` files may appear as `D coverage/...` in `git status` after adding `coverage/` to `.gitignore`. This is **acceptable cleanup** -- not a blocker. Adding or modifying generated `coverage/` files (`A coverage/...` or `M coverage/...`) should still be a blocker in a standards migration PR.
 
-## 6. Docs policy
+## 6. Docs and governance policy
 
 Required docs:
 
@@ -225,6 +225,9 @@ Required docs:
 README.md
 .repo-policy.yml
 AGENTS.md
+CONTRIBUTING.md
+LICENSE or LICENSE.md
+.github/PULL_REQUEST_TEMPLATE.md
 ```
 
 Recommended docs:
@@ -233,6 +236,24 @@ Recommended docs:
 docs/development.md
 docs/deployment.md
 docs/release.md
+```
+
+### License selection
+
+- **Public/open-source repos** should use an explicit open-source license. MIT is the default recommendation (`templates/licenses/LICENSE-MIT.txt`).
+- **Private/proprietary repos** should use a proprietary/all-rights-reserved notice (`templates/licenses/LICENSE-PROPRIETARY.txt`).
+- Do not add or change a license casually. Licensing decisions should be reviewed by the repo owner.
+- Agents must never change license terms unless explicitly instructed.
+- Private repos should not accidentally receive an open-source license.
+
+The `.repo-policy.yml` `visibility` and `license` fields should match the chosen license:
+
+```yaml
+visibility: public # public | private
+license: MIT # MIT | proprietary | none
+governance:
+  contributing: required
+  pull_request_template: required
 ```
 
 Required README concepts (validated by docs-check.yml via keyword/concept matching, not exact headings):
