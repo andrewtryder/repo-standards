@@ -45,4 +45,4 @@ python3 scripts/apply_repo_standards.py \
 ## Related docs
 
 - [`using-repo-standards.md`](using-repo-standards.md) — migration flows
-- [`github-models-detection.md`](github-models-detection.md) — profile detection advisor
+- [`detection.md`](detection.md) — deterministic profile detection
