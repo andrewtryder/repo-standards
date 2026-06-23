@@ -37,6 +37,8 @@ python3 scripts/detect_repo_standard.py --repo /path/to/project --format markdow
 
 Then create or update `.repo-policy.yml`.
 
+To apply standards safely with a dry-run or one-command apply, see [`docs/using-repo-standards.md`](docs/using-repo-standards.md#one-command-apply).
+
 ## Source-of-truth model
 
 In each application repository:
