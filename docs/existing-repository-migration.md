@@ -41,6 +41,21 @@ If your repo deploys to Cloudflare, GCP, or Railway, read the matching deploymen
 
 **Do not change deploy behavior during the first migration PR.**
 
+### Optional: apply with the safe apply script
+
+After detection, you can dry-run or apply standards infrastructure:
+
+```bash
+python3 /path/to/repo-standards/scripts/apply_repo_standards.py \
+  --repo . \
+  --standards /path/to/repo-standards \
+  --mode existing \
+  --workflow-strategy copied \
+  --dry-run
+```
+
+Use `--apply` to write safe changes. The script skips existing files by default, never modifies deploy workflows, and writes `.repo-standards-migration-summary.md`. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
+
 ## Step 3: Run the assessor (baseline)
 
 Establish a baseline before making changes:

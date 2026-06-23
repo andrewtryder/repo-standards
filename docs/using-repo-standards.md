@@ -85,6 +85,32 @@ python3 "$REPO_STANDARDS/scripts/plan_repo_standards_adoption.py" \
 
 Use `--mode new` for a brand-new repository. Use `--format shell` for a commented shell script.
 
+## One-command apply
+
+For a dry run:
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --workflow-strategy copied \
+  --dry-run
+```
+
+To apply safe standards infrastructure:
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --workflow-strategy copied \
+  --apply
+```
+
+The script preserves deploy behavior, package manager files, and application source. Review `.repo-policy.yml` after apply — detection recommends, but the adopted policy is authoritative.
+
 ## New repository flow
 
 ```bash
