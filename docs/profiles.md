@@ -2,6 +2,8 @@
 
 A **profile** is a named starting point for `.repo-policy.yml`. It encodes typical language/runtime, deploy assumptions, default commands, and quality gates.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Available profiles
 
 | Profile | Typical use | Language/runtime | Deploy assumption |

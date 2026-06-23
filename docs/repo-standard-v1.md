@@ -117,6 +117,33 @@ The `antigravity-ide` Rulesync target generates both `.agents/rules/*.md` and `.
 
 If `.agents/memories/` exists but `rulesync.jsonc` does not contain `antigravity-ide`, that should be flagged for manual review (it may be stale or misconfigured).
 
+### AI rules and documentation governance
+
+Human documentation and AI/editor rules must evolve together.
+
+- `docs/` explains the standard for humans.
+- `ai/rules/*.md` defines reusable AI/editor rule templates in this standards repo.
+- Downstream repos copy those rules into `.rulesync/rules/*.md`.
+- Rulesync generates `AGENTS.md`, `.cursor/rules/*.mdc`, `.agents/rules/*.md`, and `.agents/memories/*.md`.
+- Generated AI/editor outputs must not be edited directly as the source of truth.
+- A docs/AI-rule sync check should warn when standards docs or templates change without corresponding AI rule source changes.
+
+See `docs/ai-rules-maintenance.md` for the full maintenance pipeline.
+
+Run the sync checker locally:
+
+```bash
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main
+```
+
+Strict mode:
+
+```bash
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main --strict
+```
+
+The optional `Docs / AI Rule Sync` workflow template is at `templates/workflows/docs-ai-rule-sync.yml`.
+
 ## 4. CI quality gates
 
 Every repo should expose the same conceptual gates, even if the commands differ:
@@ -356,6 +383,7 @@ After migration, the following required checks should be configured in branch pr
 | AI Rules | Always (if `.rulesync/` is present) |
 | CI | Always |
 | Docs | Always |
+| Docs / AI Rule Sync | Recommended (warns when docs/templates change without AI rule source updates) |
 | Secret Scan | Recommended (once it passes consistently) |
 | Deploy check | When deploy workflow is configured |
 | Release check | When Release Please is configured |

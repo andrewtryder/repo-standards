@@ -13,6 +13,8 @@ The first migration PR should be **focused and non-invasive**:
 
 Think of it as adding a safety net, not renovating the house.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Step 1: Create a migration branch
 
 ```bash

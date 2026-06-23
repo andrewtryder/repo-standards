@@ -119,3 +119,16 @@ These are designed to be hosted in the repo-standards repo and called from downs
 | Long-term viability | Low | High |
 
 **Recommendation:** Use copied templates for the initial migration wave. Transition to reusable workflows once the standard stabilizes.
+
+## Docs and AI rule drift
+
+Template drift is not limited to workflows. Human-facing docs (`docs/`, `README.md`), repo policy templates, and `ai/rules/*.md` can also drift apart.
+
+The **Docs / AI Rule Sync** check warns when docs, templates, profiles, or standards files change without corresponding AI rule source changes. It is warning-only by default. Repos may make it strict after the standard stabilizes.
+
+```bash
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main --strict
+```
+
+Copy `templates/workflows/docs-ai-rule-sync.yml` to enable this in CI. See [`ai-rules-maintenance.md`](ai-rules-maintenance.md) for the full governance pipeline.

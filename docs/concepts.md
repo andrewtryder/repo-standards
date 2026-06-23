@@ -2,6 +2,8 @@
 
 This document explains the repo-standards model: what is copied, what is generated, what is reusable, and how drift is managed.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Core standard
 
 The **core standard** applies to every repository that adopts this blueprint. It includes:

@@ -47,3 +47,15 @@ Never modify license terms unless the user explicitly asks for a license change.
 Do not add an open-source license to a private/proprietary repository unless explicitly instructed.
 When adding a license file, match the license type to the repository visibility: MIT or similar for public/open-source repos, proprietary/all-rights-reserved for private repos.
 Check `.repo-policy.yml` for the `visibility` and `license` fields to determine the correct license.
+
+## Related docs
+
+- `docs/concepts.md`
+- `docs/ai-rules-maintenance.md`
+- `docs/profiles.md`
+- `docs/detection.md`
+- `docs/branch-protection.md`
+- `docs/template-drift.md`
+- `docs/deployment/cloudflare.md`
+- `docs/deployment/gcp.md`
+- `docs/deployment/railway.md`

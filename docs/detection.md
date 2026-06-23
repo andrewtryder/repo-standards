@@ -2,6 +2,8 @@
 
 The repo standard **detector** recommends a starting profile and relevant templates for a target repository. It is read-only and advisory.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Principles
 
 Detection is:

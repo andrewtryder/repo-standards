@@ -2,6 +2,8 @@
 
 This guide walks through setting up a brand-new repository using the repo-standards blueprint.
 
+For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+
 ## Prerequisites
 
 - A GitHub account
