@@ -1,0 +1,75 @@
+site_name: Repo Standards
+site_description: Reusable GitHub repository standards for CI/CD, governance, AI rules, and migration.
+site_url: https://andrewtryder.github.io/repo-standards/
+repo_url: https://github.com/andrewtryder/repo-standards
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Adoption:
+      - Using repo-standards: using-repo-standards.md
+      - New repository setup: new-repository-setup.md
+      - Existing repository migration: existing-repository-migration.md
+      - Migration order: migration-order.md
+  - Concepts and profiles:
+      - Core concepts: concepts.md
+      - Profiles: profiles.md
+      - Detection: detection.md
+      - Assessment guide: assessment-guide.md
+  - Specification:
+      - Repo Standard v1.3: repo-standard-v1.md
+      - Branch protection: branch-protection.md
+      - Template drift: template-drift.md
+      - Reusable workflows: reusable-workflows.md
+      - Release process: release-process.md
+      - Publishing: publishing.md
+  - AI and governance:
+      - AI rules maintenance: ai-rules-maintenance.md
+      - CODEOWNERS: codeowners.md
+  - Security and dependencies:
+      - Security scanning: security-scanning.md
+      - License scanning: license-scanning.md
+      - Dependency updates: dependency-updates.md
+  - Deployment:
+      - Cloudflare: deployment/cloudflare.md
+      - GCP: deployment/gcp.md
+      - Railway: deployment/railway.md
+  - Tooling:
+      - Dev container: devcontainer.md

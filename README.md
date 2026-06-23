@@ -49,6 +49,8 @@ See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model. For how
 
 This repository uses Release Please with the `simple` strategy. Release Please should create the release PR, update `CHANGELOG.md`, and create the GitHub release/tag after the release PR is merged. See [`docs/release-process.md`](docs/release-process.md).
 
+**Documentation site:** [https://andrewtryder.github.io/repo-standards/](https://andrewtryder.github.io/repo-standards/)
+
 ## Documentation
 
 | Need | Read |
@@ -69,6 +71,7 @@ This repository uses Release Please with the `simple` strategy. Release Please s
 | Cloudflare deploy guidance | [`docs/deployment/cloudflare.md`](docs/deployment/cloudflare.md) |
 | GCP deploy guidance | [`docs/deployment/gcp.md`](docs/deployment/gcp.md) |
 | Railway deploy guidance | [`docs/deployment/railway.md`](docs/deployment/railway.md) |
+| Publishing docs | [`docs/publishing.md`](docs/publishing.md) |
 
 ## License
 
@@ -76,4 +79,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contributing
 
-This is a personal/public blueprint. Contributions and suggestions are welcome — please preserve the phased migration approach and the principle that standards should never block useful work over legacy technical debt.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Please preserve the phased migration approach and the principle that standards should never block useful work over legacy technical debt.

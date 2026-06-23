@@ -29,4 +29,4 @@ Release Please depends on [Conventional Commits](https://www.conventionalcommits
 
 Release Please owns release PRs, changelog updates, GitHub releases, and tags for repositories that enable it. Do not manually edit `CHANGELOG.md` or create release tags for normal releases unless intentionally bypassing Release Please.
 
-See [`repo-standard-v1.md`](repo-standard-v1.md) for Release Please strategy selection and [`templates/workflows/release-please.simple.yml`](../templates/workflows/release-please.simple.yml) for the canonical workflow template.
+See [`repo-standard-v1.md`](repo-standard-v1.md) for Release Please strategy selection and [`release-please.simple.yml`](https://github.com/andrewtryder/repo-standards/blob/main/templates/workflows/release-please.simple.yml) for the canonical workflow template.

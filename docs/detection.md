@@ -77,7 +77,7 @@ The detector may recommend `typescript-cloudflare-worker`, but the owner may cho
 
 ## Detection rules
 
-Declarative rules live in [`profiles/detection.yml`](../profiles/detection.yml). The script loads this file when PyYAML is available; otherwise it uses built-in defaults.
+Declarative rules live in [`profiles/detection.yml`](https://github.com/andrewtryder/repo-standards/blob/main/profiles/detection.yml). The script loads this file when PyYAML is available; otherwise it uses built-in defaults.
 
 ## Manual review notes
 

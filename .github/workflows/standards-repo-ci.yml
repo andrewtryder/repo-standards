@@ -59,6 +59,13 @@ jobs:
           print(f"Validated {len(paths)} YAML files")
           PY
 
+      - name: Install MkDocs
+        run: |
+          python3 -m pip install -r requirements-docs.txt
+
+      - name: Build docs site
+        run: mkdocs build --strict
+
       - name: Rulesync frontmatter sanity
         run: |
           python3 - <<'PY'
@@ -82,6 +89,13 @@ jobs:
           test -f docs/detection.md
           test -f docs/using-repo-standards.md
           test -f docs/reusable-workflows.md
+          test -f docs/publishing.md
+          test -f mkdocs.yml
+          test -f requirements-docs.txt
+          test -f docs/index.md
+          test -f CONTRIBUTING.md
+          test -f LICENSE
+          test -f SECURITY.md
           test -f scripts/assess_repo_standards.py
           test -f scripts/detect_repo_standard.py
           test -f scripts/check_docs_ai_rule_sync.py
