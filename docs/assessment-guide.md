@@ -2,6 +2,14 @@
 
 The repo-standards assessor scores a repository's alignment with **Repo Standard v1.3**. Use `assess_repo_standards_migration_v3.py` as the current assessor. This guide explains how to run it and interpret results.
 
+For **profile detection** before migration, use the read-only detector instead:
+
+```bash
+python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo /path/to/application-repo
+```
+
+See [`detection.md`](detection.md) for detection vs assessment differences.
+
 ## Running the assessor
 
 ### Basic usage
