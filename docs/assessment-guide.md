@@ -46,7 +46,7 @@ python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
 Checks file existence, workflow configuration, and `.repo-policy.yml` structure without executing any commands. Safe to run against any repo.
 
 ```bash
-python3 assess_repo_standards.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/repo \
   --standards /path/to/repo-standards \
   --base-ref main
@@ -69,7 +69,7 @@ All commands use `--if-present` where applicable. If a script doesn't exist, tha
 
 ## Output
 
-The assessor produces two files in `assessments/` (or `--output-dir`):
+The assessor produces two files in `assessments/generated/` by default, or in `--output-dir` when supplied:
 
 - `<repo>.standards-assessment-v3.md` — human-readable report
 - `<repo>.standards-assessment-v3.json` — machine-readable JSON
@@ -169,7 +169,7 @@ This makes it suitable for use in CI:
 
 ```bash
 # In a workflow or pre-commit hook:
-python3 assess_repo_standards.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo . \
   --standards /path/to/repo-standards \
   --base-ref main \

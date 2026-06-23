@@ -64,6 +64,8 @@ Release Please should:
 - Bump versions where the repo has version files.
 - Create GitHub releases.
 
+Release Please owns release PRs, changelog updates, GitHub releases, and tags for repositories that enable it. Do not manually edit `CHANGELOG.md` or create release tags for normal releases unless intentionally bypassing Release Please.
+
 Release Please should not be treated as the deploy tool. Deployment remains in repo-specific workflows.
 
 ## 3. AI/editor instruction policy

@@ -47,6 +47,8 @@ In each application repository:
 
 See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model. For how documentation and AI/editor rules stay aligned, see [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md).
 
+This repository uses Release Please with the `simple` strategy. Release Please should create the release PR, update `CHANGELOG.md`, and create the GitHub release/tag after the release PR is merged. See [`docs/release-process.md`](docs/release-process.md).
+
 ## Documentation
 
 | Need | Read |
@@ -61,6 +63,7 @@ See [`docs/concepts.md`](docs/concepts.md) for the full lifecycle model. For how
 | Full specification | [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) |
 | Branch protection | [`docs/branch-protection.md`](docs/branch-protection.md) |
 | Template drift | [`docs/template-drift.md`](docs/template-drift.md) |
+| Release process | [`docs/release-process.md`](docs/release-process.md) |
 | Cloudflare deploy guidance | [`docs/deployment/cloudflare.md`](docs/deployment/cloudflare.md) |
 | GCP deploy guidance | [`docs/deployment/gcp.md`](docs/deployment/gcp.md) |
 | Railway deploy guidance | [`docs/deployment/railway.md`](docs/deployment/railway.md) |

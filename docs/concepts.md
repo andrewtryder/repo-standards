@@ -88,7 +88,7 @@ node_modules/
 
 ## Assessment reports
 
-The assessor (`scripts/assess_repo_standards_migration_v3.py`) scores alignment with Repo Standard v1.3. Reports go to `assessments/` by default. See [`assessment-guide.md`](assessment-guide.md).
+The assessor (`scripts/assess_repo_standards.py`) scores alignment with Repo Standard v1.3. Reports go to `assessments/generated/` by default, or to `--output-dir` when supplied. See [`assessment-guide.md`](assessment-guide.md).
 
 The **detector** (`scripts/detect_repo_standard.py`) is separate — it recommends a starting profile before adoption. It is read-only and advisory.
 
@@ -145,7 +145,7 @@ Copied templates drift over time as canonical templates evolve. Mitigations:
 
 - Reusable workflows
 - Dependabot
-- Release Please
+- Release Please (owns release PRs, `CHANGELOG.md`, GitHub releases, and tags — see [`release-process.md`](release-process.md))
 - Coverage reporting (still report-only)
 
 ### Phase 3 — Strictness
