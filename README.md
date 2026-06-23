@@ -53,6 +53,7 @@ This repository uses Release Please with the `simple` strategy. Release Please s
 
 | Need | Read |
 |---|---|
+| Using repo-standards | [`docs/using-repo-standards.md`](docs/using-repo-standards.md) |
 | Core concepts | [`docs/concepts.md`](docs/concepts.md) |
 | AI rules maintenance | [`docs/ai-rules-maintenance.md`](docs/ai-rules-maintenance.md) |
 | New repo setup | [`docs/new-repository-setup.md`](docs/new-repository-setup.md) |
@@ -63,6 +64,7 @@ This repository uses Release Please with the `simple` strategy. Release Please s
 | Full specification | [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) |
 | Branch protection | [`docs/branch-protection.md`](docs/branch-protection.md) |
 | Template drift | [`docs/template-drift.md`](docs/template-drift.md) |
+| Reusable workflows | [`docs/reusable-workflows.md`](docs/reusable-workflows.md) |
 | Release process | [`docs/release-process.md`](docs/release-process.md) |
 | Cloudflare deploy guidance | [`docs/deployment/cloudflare.md`](docs/deployment/cloudflare.md) |
 | GCP deploy guidance | [`docs/deployment/gcp.md`](docs/deployment/gcp.md) |

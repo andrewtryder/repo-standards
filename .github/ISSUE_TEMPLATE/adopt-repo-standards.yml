@@ -1,0 +1,80 @@
+name: Adopt repo standards
+description: Plan or request adoption of repo-standards in a repository.
+title: "chore(standards): adopt repo standards"
+labels:
+  - standards
+  - automation
+body:
+  - type: input
+    id: target_repo
+    attributes:
+      label: Target repository
+      description: Repository that should adopt repo-standards.
+      placeholder: owner/repo
+    validations:
+      required: true
+
+  - type: dropdown
+    id: repo_mode
+    attributes:
+      label: Repository mode
+      options:
+        - new
+        - existing
+    validations:
+      required: true
+
+  - type: input
+    id: detected_profile
+    attributes:
+      label: Detected or intended profile
+      placeholder: typescript-app, python-service, mixed-special
+
+  - type: dropdown
+    id: deploy_provider
+    attributes:
+      label: Deploy provider
+      options:
+        - none
+        - cloudflare
+        - gcp
+        - railway
+        - repo-specific
+        - unknown
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety requirements
+      options:
+        - label: Preserve existing deploy behavior
+        - label: Do not change package managers
+        - label: Do not refactor application code
+        - label: Do not fix unrelated lint/audit/coverage debt
+
+  - type: checkboxes
+    id: workflow_strategy
+    attributes:
+      label: Workflow strategy
+      options:
+        - label: Use copied workflows for first migration
+        - label: Use reusable workflows
+        - label: Decide after detection
+
+  - type: textarea
+    id: agent_notes
+    attributes:
+      label: Agent notes
+      description: Additional instructions for GitHub Copilot coding agent or another AI coding agent.
+
+  - type: checkboxes
+    id: done
+    attributes:
+      label: Completion checklist
+      options:
+        - label: Detection was run
+        - label: Baseline assessment was run
+        - label: .repo-policy.yml was reviewed manually
+        - label: Rulesync was generated
+        - label: Final assessment was run
+        - label: Deploy behavior was preserved
