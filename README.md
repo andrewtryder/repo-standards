@@ -70,6 +70,10 @@ This repository uses Release Please with the `simple` strategy. Release Please s
 | GCP deploy guidance | [`docs/deployment/gcp.md`](docs/deployment/gcp.md) |
 | Railway deploy guidance | [`docs/deployment/railway.md`](docs/deployment/railway.md) |
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 ## Contributing
 
 This is a personal/public blueprint. Contributions and suggestions are welcome — please preserve the phased migration approach and the principle that standards should never block useful work over legacy technical debt.

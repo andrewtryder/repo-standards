@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add LICENSE (MIT)
+- Add SECURITY.md with vulnerability reporting policy
+- Add CODE_OF_CONDUCT.md (Contributor Covenant v2.1)
+- Add GitHub issue templates (bug report, feature request)
+- Add pull request template
+- Add CODEOWNERS
+
 ## v1.3 — 2026-06-23
 
 - Repository health baseline (`.gitignore`, `.editorconfig`, `.env.example`, `SECURITY.md`, issue templates, ADRs)
