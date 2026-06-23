@@ -90,8 +90,15 @@ The detector may flag items requiring human judgment:
 
 Always review `.repo-policy.yml` before adopting the standard.
 
+## GitHub Models-assisted detection
+
+For ambiguous repositories, an optional advisory layer can call GitHub Models to interpret detection signals. It does not replace deterministic detection or `.repo-policy.yml`.
+
+See [`github-models-detection.md`](github-models-detection.md).
+
 ## Related docs
 
+- [`github-models-detection.md`](github-models-detection.md) — optional model-assisted advisory detection
 - [`profiles.md`](profiles.md) — profile descriptions
 - [`deployment/cloudflare.md`](deployment/cloudflare.md) — Cloudflare-specific guidance
 - [`deployment/gcp.md`](deployment/gcp.md) — GCP-specific guidance

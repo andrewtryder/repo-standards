@@ -110,6 +110,9 @@ jobs:
           test -f scripts/check_docs_ai_rule_sync.py
           test -f scripts/plan_repo_standards_adoption.py
           test -f scripts/apply_repo_standards.py
+          test -f scripts/model_assisted_repo_detection.py
+          test -f docs/github-models-detection.md
+          test -f prompts/repo-detection-advisor.prompt.md
           test -f profiles/detection.yml
           test -f templates/rulesync.jsonc
           test -d ai/rules
@@ -231,6 +234,19 @@ jobs:
             --license proprietary \
             --add-license \
             --dry-run | grep -q "cannot be used with license proprietary"
+
+      - name: Model-assisted detection dry-run smoke test
+        run: |
+          python3 scripts/model_assisted_repo_detection.py \
+            --repo . \
+            --standards . \
+            --dry-run-summary \
+            --format json
+          python3 scripts/model_assisted_repo_detection.py \
+            --repo . \
+            --standards . \
+            --dry-run-summary \
+            --format markdown
 
       - name: Assessor smoke test
         run: |
