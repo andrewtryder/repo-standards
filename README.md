@@ -481,6 +481,10 @@ The long-term preferred approach is **GitHub reusable workflows** defined in thi
 
 See `docs/template-drift.md` for caller examples and migration guidance.
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 ## Contributing
 
 This is a personal/public blueprint. Contributions and suggestions are welcome — please preserve the phased migration approach and the principle that standards should never block useful work over legacy technical debt.
