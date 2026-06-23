@@ -25,7 +25,7 @@ During initial migration, repos **copy** templates from `templates/workflows/*.y
 **How to manage drift:**
 - Re-run the assessment script (`scripts/assess_repo_standards.py`) whenever repo-standards changes.
 - Compare copied workflows against canonical templates manually or via diff.
-- Subscribe to repo-standards release notes.
+- Subscribe to repo-standards release notes (Release Please creates GitHub releases and tags).
 
 ### B. GitHub reusable workflows (for long-term drift reduction)
 

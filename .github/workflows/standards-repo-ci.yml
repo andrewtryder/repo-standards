@@ -1,0 +1,141 @@
+name: Standards Repo CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  standards-repo-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Compile Python scripts
+        run: |
+          python3 -m py_compile scripts/*.py
+          if compgen -G "scripts/legacy/*.py" > /dev/null; then
+            python3 -m py_compile scripts/legacy/*.py
+          fi
+
+      - name: Install YAML parser
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: Validate YAML
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          paths = (
+              list(Path(".github").rglob("*.yml"))
+              + list(Path(".github").rglob("*.yaml"))
+              + list(Path("templates").rglob("*.yml"))
+              + list(Path("templates").rglob("*.yaml"))
+              + list(Path("profiles").rglob("*.yml"))
+              + list(Path("profiles").rglob("*.yaml"))
+          )
+
+          for path in paths:
+              with path.open("r", encoding="utf-8") as handle:
+                  yaml.safe_load(handle)
+
+          print(f"Validated {len(paths)} YAML files")
+          PY
+
+      - name: Rulesync frontmatter sanity
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          for path in sorted(Path("ai/rules").glob("*.md")):
+              text = path.read_text(encoding="utf-8")
+              assert text.startswith("---\n"), f"{path} does not start with YAML frontmatter"
+              assert "\n---\n" in text[4:], f"{path} does not close YAML frontmatter"
+
+          print("Rulesync rule frontmatter looks valid")
+          PY
+
+      - name: Verify required standards files
+        run: |
+          test -f README.md
+          test -f docs/repo-standard-v1.md
+          test -f docs/concepts.md
+          test -f docs/ai-rules-maintenance.md
+          test -f docs/profiles.md
+          test -f docs/detection.md
+          test -f scripts/assess_repo_standards.py
+          test -f scripts/detect_repo_standard.py
+          test -f scripts/check_docs_ai_rule_sync.py
+          test -f profiles/detection.yml
+          test -f templates/rulesync.jsonc
+          test -d ai/rules
+          test -f .github/workflows/node-ci.reusable.yml
+          test -f .github/workflows/python-ci.reusable.yml
+          test -f assessments/README.md
+          test -d assessments/examples
+          test -d assessments/generated
+          test -f assessments/generated/.gitkeep
+
+      - name: Check docs / AI-rule sync
+        run: |
+          base_ref="${{ github.base_ref }}"
+          if [ -z "$base_ref" ]; then
+            base_ref="main"
+          else
+            base_ref="origin/${base_ref}"
+          fi
+          python3 scripts/check_docs_ai_rule_sync.py --base-ref "$base_ref"
+
+      - name: Detector smoke test
+        run: |
+          python3 scripts/detect_repo_standard.py --repo . --format markdown
+          python3 scripts/detect_repo_standard.py --repo . --format json
+
+      - name: Assessor smoke test
+        run: |
+          python3 scripts/assess_repo_standards.py \
+            --repo . \
+            --standards . \
+            --base-ref main \
+            --output-dir /tmp/repo-standards-assessment || true
+
+          test -f /tmp/repo-standards-assessment/repo-standards.standards-assessment-v3.md
+          test -f /tmp/repo-standards-assessment/repo-standards.standards-assessment-v3.json
+
+      - name: Ensure no generated assessment output was committed
+        run: |
+          bad="$(find assessments/generated -type f ! -name .gitkeep -print)"
+          if [ -n "$bad" ]; then
+            echo "Unexpected generated assessment files committed:"
+            echo "$bad"
+            exit 1
+          fi
+
+      - name: Search for stale stable-doc references
+        run: |
+          if grep -R "repo-standards/.github/workflows/.*@main" README.md docs/; then
+            echo "Stable reusable workflow examples must not use @main"
+            exit 1
+          fi
+
+          if grep -R "assess_repo_standards_migration_v3.py\|assess_repo_standards_migration_v2.py\|assess_repo_standards_migration.py" README.md docs assessments -n; then
+            echo "Current docs must use scripts/assess_repo_standards.py"
+            exit 1
+          fi
