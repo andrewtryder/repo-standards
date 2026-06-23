@@ -52,6 +52,7 @@ nav:
       - Core concepts: concepts.md
       - Profiles: profiles.md
       - Detection: detection.md
+      - GitHub Models migration: github-models-migration.md
       - Assessment guide: assessment-guide.md
   - Specification:
       - Repo Standard v1.3: repo-standard-v1.md

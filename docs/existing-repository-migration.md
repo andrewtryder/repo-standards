@@ -54,7 +54,9 @@ python3 /path/to/repo-standards/scripts/apply_repo_standards.py \
   --dry-run
 ```
 
-Use `--apply` to write safe changes. The script skips existing files by default, never modifies deploy workflows, and writes `.repo-standards-migration-summary.md`. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
+Use `--apply` to write safe changes. The script skips existing files by default, never modifies deploy workflows, and writes `.repo-standards-migration-summary.md`.
+
+Use `--analyze-existing` to inspect generated AI/editor outputs, deploy workflows, and coverage artifacts before applying. Use `--adoption-level` (`baseline`, `checks`, `reusable-ci`, `full`) and `--rules-strategy profile` for safer migrations. Use `--interactive` for confirmation prompts. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply) and [`github-models-migration.md`](github-models-migration.md).
 
 ## Step 3: Run the assessor (baseline)
 
