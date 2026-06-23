@@ -87,7 +87,7 @@ Use `--mode new` for a brand-new repository. Use `--format shell` for a commente
 
 ## One-command apply
 
-### Analyze existing repo
+### Analyze
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
@@ -97,57 +97,65 @@ python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --analyze-existing
 ```
 
-### Dry run
+### Interactive migration
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --repo . \
   --standards "$REPO_STANDARDS" \
   --mode existing \
+  --adoption-level checks \
   --workflow-strategy copied \
   --rules-strategy profile \
-  --dry-run
+  --interactive
 ```
 
-### Apply safely
+### Non-interactive safe apply
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --repo . \
   --standards "$REPO_STANDARDS" \
   --mode existing \
+  --adoption-level baseline \
   --workflow-strategy copied \
   --rules-strategy profile \
   --apply
 ```
 
-### If existing generated outputs should be rewritten
+### Full migration with existing generated rule migration and coverage cleanup
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --repo . \
   --standards "$REPO_STANDARDS" \
   --mode existing \
+  --adoption-level full \
   --workflow-strategy copied \
   --rules-strategy profile \
   --apply \
-  --allow-generated-output-rewrite
+  --migrate-existing-agent-rules \
+  --cleanup-generated-artifacts \
+  --run-assessment
 ```
 
-### If tracked coverage artifacts should be removed from git
+### Optional AI advisory assessment
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --repo . \
   --standards "$REPO_STANDARDS" \
   --mode existing \
-  --workflow-strategy copied \
-  --rules-strategy profile \
-  --apply \
-  --cleanup-generated-artifacts
+  --analyze-existing \
+  --ai-assessment \
+  --model openai/gpt-4o-mini
 ```
+
+See [`github-models-migration.md`](github-models-migration.md). AI assessment is advisory and never applies changes directly.
 
 The apply script does not change deploy workflows, release workflows, package manager files, or application source. Review `.repo-policy.yml` after apply.
+
+Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existing generated agent/editor files. Use `--migrate-existing-agent-rules` to copy repo-specific generated rules into `.rulesync/rules/` first.
 
 ## New repository flow
 

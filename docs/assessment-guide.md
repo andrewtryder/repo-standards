@@ -10,9 +10,9 @@ python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo /path/to/
 
 See [`detection.md`](detection.md) for detection vs assessment differences.
 
-For automated standards adoption, use `scripts/apply_repo_standards.py` (dry-run by default; pass `--apply` to write). It reuses detection, preserves deploy workflows, supports profile-specific AI rule copying, blocks unexpected Rulesync deletions unless `--allow-generated-output-rewrite` is set, and can run Rulesync and assessment after apply.
+For automated standards adoption, use `scripts/apply_repo_standards.py` with adoption levels, workflow classification, and optional interactive confirmation. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
 
-The assessor ignores `.github/workflows/secret-scan.yml` when checking for secret-like changed files and reports exact paths when blockers are raised.
+Optional GitHub Models migration assessment is advisory only — see [`github-models-migration.md`](github-models-migration.md).
 
 The **Docs / AI Rule Sync** check warns when docs, templates, profiles, or standards files change without corresponding AI rule source changes. It is warning-only by default. Repos may make it strict after the standard stabilizes.
 
