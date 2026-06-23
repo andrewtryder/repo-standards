@@ -1,5 +1,10 @@
 name: example-typescript-library
 profile: typescript-library
+visibility: public
+license: MIT
+governance:
+  contributing: required
+  pull_request_template: required
 package_manager: npm
 node_version: "24"
 

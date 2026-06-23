@@ -2,12 +2,12 @@
 """
 assess_repo_standards_migration.py
 
-Assess one repository against Repo Standards v1 after an agent migration.
+Assess one repository against Repo Standards v1 (superseded by v3).
 
 Example:
-  python3 /Users/atr/code/repo-standards/scripts/assess_repo_standards_migration.py \
-    --repo /Users/atr/code/nab-api \
-    --standards /Users/atr/code/repo-standards \
+  python3 /path/to/repo-standards/scripts/assess_repo_standards_migration.py \
+    --repo /path/to/example-repo \
+    --standards /path/to/repo-standards \
     --base-ref main \
     --run-safe-checks
 

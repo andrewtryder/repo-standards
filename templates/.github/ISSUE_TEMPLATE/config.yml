@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/YOUR_USERNAME/YOUR_REPO/docs
+    about: Check the documentation for answers to common questions
+  - name: 💬 Community Discussion
+    url: https://github.com/YOUR_USERNAME/YOUR_REPO/discussions
+    about: Join the discussion and ask questions
+  - name: 🐛 Report a Security Issue
+    url: https://github.com/YOUR_USERNAME/YOUR_REPO/security/advisories/new
+    about: Report security vulnerabilities privately

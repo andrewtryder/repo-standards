@@ -1,5 +1,10 @@
 name: example-mixed-repo
 profile: mixed-special
+visibility: private
+license: proprietary
+governance:
+  contributing: required
+  pull_request_template: required
 package_manager: mixed
 node_version: "24"
 python_version: "3.12"

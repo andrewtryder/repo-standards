@@ -2,7 +2,7 @@
 """
 assess_repo_standards_migration_v3.py
 
-Post-migration assessment for a single repository adopting Repo Standards v1.2.
+Post-migration assessment for a single repository adopting Repo Standards v1.3.
 
 Based on pilot findings from nab-api:
 - Coverage A/M is a blocker; D is acceptable cleanup (with .gitignore check).
@@ -405,6 +405,57 @@ def check_gitignore_contains_coverage(repo: Path) -> bool:
     return bool(re.search(r"^\s*coverage/\s*$", gitignore_text, re.MULTILINE))
 
 
+def has_gitignore(repo: Path) -> bool:
+    """Check if .gitignore exists."""
+    return exists(repo, ".gitignore")
+
+
+def has_editorconfig(repo: Path) -> bool:
+    """Check if .editorconfig exists."""
+    return exists(repo, ".editorconfig")
+
+
+def has_env_example(repo: Path) -> bool:
+    """Check if .env.example exists."""
+    return exists(repo, ".env.example")
+
+
+def has_security_md(repo: Path) -> bool:
+    """Check if SECURITY.md exists."""
+    return exists(repo, "SECURITY.md")
+
+
+def has_issue_templates(repo: Path) -> bool:
+    """Check if issue templates exist."""
+    issue_templates_dir = repo / ".github" / "ISSUE_TEMPLATE"
+    if not issue_templates_dir.exists():
+        return False
+    return any(p.is_file() for p in issue_templates_dir.glob("*"))
+
+
+def has_adr_template_or_decisions_dir(repo: Path) -> bool:
+    """Check for ADR template or decisions directory."""
+    # Check for ADR template
+    if exists(repo, "templates/docs/decisions/ADR-000-template.md"):
+        return True
+    # Check for decisions directory with ADR files
+    decisions_dir = repo / "docs" / "decisions"
+    if decisions_dir.exists():
+        return any(p.is_file() for p in decisions_dir.glob("ADR-*.md"))
+    return False
+
+
+def check_gitignore_excludes_env(repo: Path) -> bool:
+    """Check if .gitignore excludes .env and .env.* but not .env.example."""
+    gitignore_text = read_text(repo / ".gitignore").lower() if exists(repo, ".gitignore") else ""
+    # Should exclude .env and .env.*
+    excludes_env = bool(re.search(r"^\s*\.env\s*$", gitignore_text, re.MULTILINE))
+    excludes_env_star = bool(re.search(r"^\s*\.env\.\*\s*$", gitignore_text, re.MULTILINE))
+    # Should NOT exclude .env.example
+    excludes_example = bool(re.search(r"^\s*\.env\.example\s*$", gitignore_text, re.MULTILINE))
+    return excludes_env and excludes_env_star and not excludes_example
+
+
 def score_report(
     state: dict[str, Any],
     command_analysis: dict[str, Any],
@@ -421,7 +472,9 @@ def score_report(
     pkg = state["package"]
     docs = state["docs"]
     changed = state["changed"]
-    has_coverage_in_gitignore = state["gitignore"]["has_coverage"]
+    gi = state["gitignore"]
+    gov = state["governance"]
+    has_coverage_in_gitignore = gi["has_coverage"]
 
     # Required files and workflows
     required = [
@@ -434,6 +487,7 @@ def score_report(
         ("Missing AI rules sync workflow", wf["has_ai_rules_workflow"]),
         ("Missing semantic PR / conventional commit enforcement", wf["has_semantic_pr_workflow"]),
         ("Missing README.md", docs["has_readme"]),
+        ("Missing .gitignore", gi["has_gitignore"]),
     ]
 
     for msg, ok in required:
@@ -508,12 +562,28 @@ def score_report(
         warnings.append("Missing secret scanning workflow; recommended but not yet required")
 
     # Governance files (warnings only for existing repos)
-    if not exists(repo, "CONTRIBUTING.md"):
+    if not gov["has_contributing"]:
         warnings.append("Missing `CONTRIBUTING.md`; recommended but not yet required")
-    if not _has_pr_template(repo):
+    if not gov["has_pr_template"]:
         warnings.append("Missing pull request template (`.github/PULL_REQUEST_TEMPLATE.md`); recommended but not yet required")
-    if not _has_license(repo):
+    if not gov["has_license"]:
         warnings.append("Missing `LICENSE` or `LICENSE.md`; recommended but not yet required. Choose MIT for public repos, proprietary for private repos.")
+
+    # Repository health baseline (warnings initially for existing repos)
+    if not gi["has_editorconfig"]:
+        warnings.append("Missing `.editorconfig`; recommended but not yet required")
+    if not gi["has_env_example"]:
+        warnings.append("Missing `.env.example`; recommended but not yet required")
+    if not gi["has_security_md"]:
+        warnings.append("Missing `SECURITY.md`; recommended but not yet required")
+    if not gi["has_issue_templates"]:
+        warnings.append("Missing issue templates (`.github/ISSUE_TEMPLATE/`); optional but recommended")
+    if not gi["has_adr_template_or_decisions_dir"]:
+        warnings.append("Missing ADR directory or template; optional recommendation only")
+
+    # Check .gitignore properly excludes .env but not .env.example
+    if gi["has_gitignore"] and not gi["excludes_env_not_example"]:
+        warnings.append(".gitignore should exclude .env and .env.* but not .env.example")
 
     # Docs check
     if not docs["readme_mentions_checks"]:
@@ -674,6 +744,18 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
         "docs": docs_state(repo),
         "gitignore": {
             "has_coverage": check_gitignore_contains_coverage(repo),
+            "has_gitignore": has_gitignore(repo),
+            "has_editorconfig": has_editorconfig(repo),
+            "has_env_example": has_env_example(repo),
+            "has_security_md": has_security_md(repo),
+            "has_issue_templates": has_issue_templates(repo),
+            "has_adr_template_or_decisions_dir": has_adr_template_or_decisions_dir(repo),
+            "excludes_env_not_example": check_gitignore_excludes_env(repo) if has_gitignore(repo) else False,
+        },
+        "governance": {
+            "has_contributing": exists(repo, "CONTRIBUTING.md"),
+            "has_pr_template": _has_pr_template(repo),
+            "has_license": _has_license(repo),
         },
         "changed": {
             "files": files,

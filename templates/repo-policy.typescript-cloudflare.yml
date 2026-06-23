@@ -1,5 +1,10 @@
 name: example-worker
 profile: typescript-cloudflare-worker
+visibility: public
+license: MIT
+governance:
+  contributing: required
+  pull_request_template: required
 package_manager: npm
 node_version: "24"
 

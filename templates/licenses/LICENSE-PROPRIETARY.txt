@@ -1,0 +1,20 @@
+Proprietary License
+
+Copyright (c) <YEAR> <COPYRIGHT HOLDER>
+
+All rights reserved.
+
+This software and associated documentation files (the "Software") are the
+proprietary property of the copyright holder. The Software is provided for
+use only under the terms and conditions of a separate license agreement
+between the licensee and the copyright holder. Any unauthorized use,
+reproduction, modification, distribution, or creation of derivative works
+of the Software is strictly prohibited.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
