@@ -140,6 +140,8 @@ Node/TypeScript repositories **must have a root `.nvmrc` file** specifying the p
 
 - `.nvmrc` is the operational source of truth for local development (`nvm use`, `fnm`, etc.) and CI (`node-version-file`).
 - The `node_version` field in `.repo-policy.yml` is **descriptive** -- it documents the intended version, but `.nvmrc` drives actual setup.
+- `.nvmrc` is required for Node repositories.
+- AI rules checks use `.nvmrc` when present and fall back to Node 24 for non-Node repositories.
 - CI workflow templates use `node-version-file: ".nvmrc"` instead of hardcoded `node-version`.
 
 A template `.nvmrc` (with `24`) is at `configs/node/.nvmrc`.
@@ -166,7 +168,21 @@ The preferred long-term CI standard is **GitHub reusable workflows** defined in 
 
 See `docs/template-drift.md` for details and caller examples.
 
-Reusable workflow templates are at:
+Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
+
+Reusable workflow locations:
+
+| Path | Purpose |
+|---|---|
+| `.github/workflows/*.reusable.yml` | Live reusable workflows callable by downstream repos |
+| `templates/workflows/*.reusable.yml` | Copy/reference templates, if retained |
+
+Live callable workflows:
+
+- `.github/workflows/node-ci.reusable.yml`
+- `.github/workflows/python-ci.reusable.yml`
+
+Template copies:
 
 - `templates/workflows/node-ci.reusable.yml`
 - `templates/workflows/python-ci.reusable.yml`

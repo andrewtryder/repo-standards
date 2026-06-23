@@ -26,7 +26,7 @@ git checkout -b chore/standards-migration
 Establish a baseline before making changes:
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/your-repo \
   --standards /path/to/repo-standards \
   --base-ref main
@@ -210,7 +210,7 @@ git add -u  # stages deletions
 ## Step 15: Run the assessor again
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/your-repo \
   --standards /path/to/repo-standards \
   --base-ref main \

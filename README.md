@@ -16,7 +16,7 @@ This repository defines a baseline standard for all projects. It provides templa
 - **Docs and governance files** — `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.github/PULL_REQUEST_TEMPLATE.md`
 - **Dependabot** — weekly updates for GitHub Actions, npm, and pip
 - **Secret scanning** — TruffleHog PR diff scanning for verified secrets
-- **Node version management** — `.nvmrc` as the operational source of truth for local and CI Node version
+- **Node version management** — `.nvmrc` is required for Node repositories and is the operational source of truth for local and CI Node version; AI rules checks use `.nvmrc` when present and fall back to Node 24 for non-Node repositories
 - **Repository health baseline** — `.gitignore`, `.env.example`, `.editorconfig`, `SECURITY.md`, issue templates, ADRs, CODEOWNERS, devcontainers, license scanning
 - **Migration assessments** — scripts that score a repo's alignment with the standard
 
@@ -155,10 +155,11 @@ license scanning
 | `configs/` | Starter configs: commitlint, pre-commit, ruff, `.nvmrc` | Copied into each repo and customized |
 | `docs/` | Standard specification and guides | Reference documentation; not copied into repos |
 | `templates/` | Repo policy profiles, Dependabot config, license templates, governance files | Copied into each repo and customized |
-| `templates/workflows/` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, secret scan) and reusable workflow definitions | Copied into each repo's `.github/workflows/` |
+| `templates/workflows/` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, secret scan) and reusable workflow reference copies | Copied into each repo's `.github/workflows/` for non-reusable workflows |
+| `.github/workflows/*.reusable.yml` | Live reusable workflows callable by downstream repos | Called from consumer repos via `uses:` |
 | `templates/licenses/` | MIT and proprietary license templates | One copied to each repo root as `LICENSE` or `LICENSE.md` |
 | `scripts/` | Assessment tools | Run against application repos; not copied |
-| `assessments/` | Reference assessment outputs from pilot migrations; regenerated outputs are gitignored | See `assessments/README.md` |
+| `assessments/` | Reference assessment examples and default generated output location | See `assessments/README.md` |
 
 ### File lifecycle
 
@@ -286,7 +287,7 @@ pytest
 Run the assessor:
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/my-new-project \
   --standards /path/to/repo-standards \
   --run-safe-checks
@@ -341,7 +342,7 @@ chore(standards): adopt repo standards
 ### Command
 
 ```bash
-python3 /path/to/repo-standards/scripts/assess_repo_standards_migration_v3.py \
+python3 /path/to/repo-standards/scripts/assess_repo_standards.py \
   --repo /path/to/application-repo \
   --standards /path/to/repo-standards \
   --base-ref main \
@@ -473,6 +474,10 @@ The `.repo-policy.yml` `visibility` and `license` fields should match the chosen
 Early migrations typically **copy** templates into each repo. This is fast but creates drift over time as the canonical templates evolve.
 
 The long-term preferred approach is **GitHub reusable workflows** defined in this standards repo and called from downstream repos. This centralizes CI logic and ensures updates flow automatically.
+
+Live callable workflows live in `.github/workflows/*.reusable.yml`. Template copies for reference or early migration are in `templates/workflows/*.reusable.yml`.
+
+Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
 
 | Approach | Pros | Cons |
 |---|---|---|

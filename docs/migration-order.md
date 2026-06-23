@@ -23,7 +23,7 @@ Migrating a repo to this standard means performing the following steps:
     find agents -maxdepth 3 -type f -print 2>/dev/null || true
     ```
     Expected output should be empty. If it is not, verify those paths are intentional and documented.
-11. **Run the assessment script** (`scripts/assess_repo_standards_migration_v3.py`) and resolve any blockers.
+11. **Run the assessment script** (`scripts/assess_repo_standards.py`) and resolve any blockers.
 12. **Configure branch protection** rules with required checks (see `docs/branch-protection.md`).
 
 ## Pilot

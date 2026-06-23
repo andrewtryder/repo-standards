@@ -1,4 +1,4 @@
-|---
+---
 targets: ["*"]
 description: "TypeScript and JavaScript standards"
 globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"]
