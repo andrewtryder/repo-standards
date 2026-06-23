@@ -5,6 +5,7 @@
 # Python
 __pycache__/
 *.py[cod]
+.venv-docs/
 
 # Generated outputs from running Rulesync locally in this repo
 .agents/
@@ -14,3 +15,6 @@ AGENTS.md
 # Generated assessment outputs
 assessments/generated/*
 !assessments/generated/.gitkeep
+
+# MkDocs build output
+site/

@@ -401,7 +401,7 @@ Goal:
 
 ### GitHub issue template
 
-This repository includes [`.github/ISSUE_TEMPLATE/adopt-repo-standards.yml`](../.github/ISSUE_TEMPLATE/adopt-repo-standards.yml) for structured agent-assisted adoption requests.
+This repository includes [`.github/ISSUE_TEMPLATE/adopt-repo-standards.yml`](https://github.com/andrewtryder/repo-standards/blob/main/.github/ISSUE_TEMPLATE/adopt-repo-standards.yml) for structured agent-assisted adoption requests.
 
 ## Related docs
 
