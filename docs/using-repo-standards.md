@@ -157,6 +157,21 @@ The apply script does not change deploy workflows, release workflows, package ma
 
 Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existing generated agent/editor files. Use `--migrate-existing-agent-rules` to copy repo-specific generated rules into `.rulesync/rules/` first.
 
+### Migration-friendly workflow defaults
+
+- **Secret scan** (`secret-scan.yml`) uses only `extra_args: --results=verified`. Do not add `--no-update` or `--fail`; TruffleHog v3.95.3 provides those internally.
+- **Docs check** (`docs-check.yml`) requires core standards files (`README.md`, `.repo-policy.yml`, `AGENTS.md`, `CONTRIBUTING.md`, PR template, `.gitignore`). `LICENSE`, `.editorconfig`, `.env.example`, and `SECURITY.md` are recommended warnings only. Open-source licenses declared in `.repo-policy.yml` trigger a warning when `LICENSE`/`LICENSE.md` is missing.
+- **README concepts** are warning-only unless the repo sets `DOCS_CHECK_STRICT=true` as a GitHub Actions variable.
+- **`.editorconfig`** is added by the apply script when missing.
+- **License** is never created automatically. The apply script warns when `.repo-policy.yml` declares an open-source license but no license file exists.
+- **`rulesync.jsonc`** is copied in Prettier-compatible format. For Node/TypeScript repos, the apply script best-effort runs `npx prettier --write rulesync.jsonc` after apply (use `--skip-format-generated` to disable).
+
+If downstream formatting CI still fails, run:
+
+```bash
+npx prettier --write rulesync.jsonc
+```
+
 ## New repository flow
 
 ```bash

@@ -14,6 +14,8 @@ For automated standards adoption, use `scripts/apply_repo_standards.py` with ado
 
 Optional GitHub Models migration assessment is advisory only — see [`github-models-migration.md`](github-models-migration.md).
 
+Migrated repos use migration-friendly docs-check defaults: core files are required; `LICENSE`, `.editorconfig`, and README concept gaps are warnings unless `DOCS_CHECK_STRICT=true`. The apply script adds `.editorconfig` but does not auto-create licenses.
+
 The **Docs / AI Rule Sync** check warns when docs, templates, profiles, or standards files change without corresponding AI rule source changes. It is warning-only by default. Repos may make it strict after the standard stabilizes.
 
 ```bash

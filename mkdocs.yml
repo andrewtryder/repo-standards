@@ -63,6 +63,7 @@ nav:
       - Publishing: publishing.md
   - AI and governance:
       - AI rules maintenance: ai-rules-maintenance.md
+      - GitHub Models migration: github-models-migration.md
       - CODEOWNERS: codeowners.md
   - Security and dependencies:
       - Security scanning: security-scanning.md

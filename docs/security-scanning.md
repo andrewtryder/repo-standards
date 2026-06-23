@@ -13,8 +13,8 @@ The workflow uses **TruffleHog** to scan pull request diffs for leaked secrets, 
 The template is configured conservatively to reduce false positives:
 
 - `--results=verified` — only flag results TruffleHog can verify (e.g., by checking if a credential is active against a known service).
-- `--no-update` — do not auto-update TruffleHog's detection rules during CI (stability).
-- `--fail` — exit with non-zero if verified secrets are found.
+
+TruffleHog v3.95.3 provides `--no-update` and `--fail` internally. Do not pass those flags again via `extra_args` or CI will fail with duplicate-flag errors.
 
 The scan runs on every pull request. It does not scan the full git history (only the PR diff range).
 
