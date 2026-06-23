@@ -65,6 +65,7 @@ jobs:
     with:
       node_version: "24"
       install_command: "npm ci"
+      format_check_command: "npm run format:check"
       lint_command: "npm run lint"
       typecheck_command: "npm run typecheck"
       test_command: "npm test"

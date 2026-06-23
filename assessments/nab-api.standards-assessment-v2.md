@@ -1,8 +1,8 @@
 # nab-api Standards Migration Assessment v2
 
 Generated: `2026-06-23T04:25:27.856620+00:00`
-Repo: `/Users/atr/code/nab-api`
-Standards repo: `/Users/atr/code/repo-standards`
+Repo: `/path/to/example-repo`
+Standards repo: `/path/to/repo-standards`
 Score: **80/100**
 
 ## Verdict

@@ -153,6 +153,7 @@ When writing CI workflows, prefer using `workflow_call` with inputs so that runt
 | `node_version` | `""` (uses `.nvmrc`) | Node.js version for setup-node |
 | `python_version` | `"3.12"` | Python version for setup-python |
 | `install_command` | `"npm ci"` or pip command | Install dependencies |
+| `format_check_command` | `"npm run format:check"` or `"ruff format --check ."` | Format check |
 | `lint_command` | `"npm run lint"` or `"ruff check ."` | Lint check |
 | `typecheck_command` | `"npm run typecheck"` or `""` | Type checking |
 | `test_command` | `"npm test"` or `"pytest"` | Run tests |
@@ -292,6 +293,9 @@ Each profile template (under `templates/repo-policy.*.yml`) includes:
 |---|---|
 | `name` | Descriptive example name |
 | `profile` | Profile identifier |
+| `visibility` | Repository visibility (`public` or `private`) |
+| `license` | License type (`MIT`, `proprietary`, or `none`) |
+| `governance` | Required governance files (`contributing`, `pull_request_template`) |
 | `node_version` / `python_version` / `package_manager` | Runtime configuration (descriptive; `.nvmrc` is operational for Node) |
 | `commands` | Install, format, lint, typecheck, test, coverage, build |
 | `quality_gates` | Required checks |
@@ -358,7 +362,132 @@ After migration, the following required checks should be configured in branch pr
 
 See `docs/branch-protection.md` for details.
 
-## 12. Blocker vs warning guidance
+## 12. Repository health baseline
+
+### Required for new repos
+
+Every new repository must include:
+
+```txt
+README.md
+.repo-policy.yml
+AGENTS.md
+CONTRIBUTING.md
+LICENSE or LICENSE.md
+SECURITY.md
+.github/PULL_REQUEST_TEMPLATE.md
+.gitignore
+.editorconfig
+.env.example
+```
+
+### Warnings for existing repos during migration
+
+When migrating existing repositories, the following items should be addressed but are not blockers:
+
+```txt
+SECURITY.md
+.env.example
+.editorconfig
+issue templates (.github/ISSUE_TEMPLATE/)
+ADR directory (docs/decisions/)
+CODEOWNERS
+devcontainer
+license scanning
+```
+
+### Repository health files
+
+#### `.gitignore`
+
+- Required for all repos
+- Use templates from `templates/gitignore/` based on project type:
+  - `node.gitignore` for Node.js projects
+  - `python.gitignore` for Python projects
+  - `cloudflare-worker.gitignore` for Cloudflare Workers
+  - `mixed.gitignore` for mixed-language projects
+- Ensure `coverage/` is ignored in all repos
+- Do not ignore `.agents/memories/` if using the `antigravity-ide` Rulesync target
+
+#### `.env.example`
+
+- Required for all repos with environment variables
+- Document required environment variable names with blank or placeholder values only
+- Do not commit real secret values
+- Include Honeybadger placeholders if using Honeybadger:
+  ```txt
+  HONEYBADGER_API_KEY=
+  HONEYBADGER_ENVIRONMENT=development
+  ```
+- For Cloudflare Workers, add comments explaining that production secrets should be configured with Wrangler/Cloudflare secrets
+
+#### `.editorconfig`
+
+- Required for all repos
+- Ensures consistent code formatting across editors
+- Template at `templates/.editorconfig`
+- Default settings:
+  - LF line endings
+  - UTF-8 charset
+  - 2 spaces for JavaScript/TypeScript/JSON/YAML
+  - 4 spaces for Python
+  - Preserve trailing whitespace in Markdown
+
+#### `SECURITY.md`
+
+- Required for all repos
+- Template at `templates/SECURITY.md`
+- Include:
+  - Supported versions
+  - How to report a vulnerability
+  - Contact method placeholder
+  - Expected response timeline
+  - Request not to disclose publicly before coordination
+  - Note that secrets should never be included in reports
+
+#### Issue templates
+
+- Optional but recommended
+- Templates at `templates/.github/ISSUE_TEMPLATE/`
+- Include:
+  - `bug_report.yml` - for reporting bugs
+  - `feature_request.yml` - for feature requests
+  - `config.yml` - to disable blank issues and provide contact links
+
+#### ADRs (Architecture Decision Records)
+
+- Optional but recommended for significant architectural decisions
+- Template at `templates/docs/decisions/ADR-000-template.md`
+- Store in `docs/decisions/` directory
+- Use ADR-XXX naming convention (e.g., ADR-001, ADR-002)
+
+#### CODEOWNERS
+
+- Optional guidance, not required
+- Template at `templates/.github/CODEOWNERS`
+- Document that users must update the owner before copying
+- Example:
+  ```txt
+  # Default owner
+  * @YOUR_GITHUB_USERNAME
+  ```
+
+#### Devcontainers
+
+- Optional guidance for repos with heavier setup
+- Useful for Cloudflare Workers or Python service repos
+- Not required in the standards assessment
+- Document when and why to use devcontainers
+
+#### Dependency license scanning
+
+- Optional future quality gate
+- Not required in current standards
+- For Node: consider tools like `license-checker`
+- For Python: consider tools like `pip-licenses`
+- Document as future enhancement in repo documentation
+
+### Blocker vs warning guidance
 
 When assessing a standards migration PR, the assessor should distinguish between:
 
@@ -382,3 +511,9 @@ When assessing a standards migration PR, the assessor should distinguish between
 - Missing `.nvmrc` in a Node repo (recommended but not yet required)
 - Missing `.github/dependabot.yml` (recommended but not yet required)
 - Missing secret scanning workflow (recommended but not yet required)
+- Missing `.gitignore` (warning initially, blocker for strict/new repo mode if supported)
+- Missing `.editorconfig` (warning initially)
+- Missing `.env.example` (warning initially)
+- Missing `SECURITY.md` (warning initially)
+- Missing issue templates (optional warning)
+- Missing ADR directory/template (optional recommendation only)

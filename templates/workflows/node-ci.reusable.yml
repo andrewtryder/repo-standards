@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: "npm ci"
+      format_check_command:
+        description: "Format check command (--if-present)"
+        required: false
+        type: string
+        default: "npm run format:check --if-present"
       lint_command:
         description: "Lint command (--if-present)"
         required: false
@@ -47,19 +52,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
+        if: ${{ inputs.node_version != '' }}
         with:
-          node-version-file: "${{ inputs.node_version && '' || '.nvmrc' }}"
-          node-version: "${{ inputs.node_version || '' }}"
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+
+      - uses: actions/setup-node@v4
+        if: ${{ inputs.node_version == '' }}
+        with:
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install
         run: ${{ inputs.install_command }}
 
       - name: Format check
-        run: ${{ inputs.lint_command }}
-        # Note: format check is not included in the standard Node scripts.
-        # Add a separate format:check command if needed.
+        run: ${{ inputs.format_check_command }}
 
       - name: Lint
         run: ${{ inputs.lint_command }}

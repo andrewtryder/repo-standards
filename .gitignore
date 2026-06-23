@@ -1,12 +1,16 @@
 # macOS
 .DS_Store
+._*
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 
 # Generated outputs from running Rulesync locally in this repo
 .agents/
 .cursor/
 AGENTS.md
+
+# Generated assessment outputs (keep README)
+assessments/*
+!assessments/README.md

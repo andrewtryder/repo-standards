@@ -1,5 +1,10 @@
 name: example-python-service
 profile: python-service
+visibility: private
+license: proprietary
+governance:
+  contributing: required
+  pull_request_template: required
 python_version: "3.12"
 package_manager: pip-requirements
 

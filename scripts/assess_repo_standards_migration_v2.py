@@ -2,7 +2,7 @@
 """
 assess_repo_standards_migration_v2.py
 
-Stricter post-migration assessment for a single repository adopting Repo Standards v1.
+Stricter post-migration assessment for a single repository adopting Repo Standards v1 (superseded by v3).
 
 Adds checks that v1 missed:
 - Generated coverage artifacts in the diff.

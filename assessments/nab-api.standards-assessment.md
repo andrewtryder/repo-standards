@@ -1,8 +1,8 @@
 # nab-api Standards Migration Assessment
 
 Generated: `2026-06-23T03:50:02.501434+00:00`
-Repo: `/Users/atr/code/nab-api`
-Standards repo: `/Users/atr/code/repo-standards`
+Repo: `/path/to/example-repo`
+Standards repo: `/path/to/repo-standards`
 Score: **100/100**
 
 ## Verdict
@@ -167,7 +167,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 > eslint
 
 
-/Users/atr/code/nab-api/src/api.ts
+/path/to/example-repo/src/api.ts
    72:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
    98:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   151:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
@@ -178,29 +178,29 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
   193:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   223:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/browser.ts
+/path/to/example-repo/src/browser.ts
    70:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   241:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/find-missing.ts
+/path/to/example-repo/src/find-missing.ts
   12:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/fix-state.ts
+/path/to/example-repo/src/fix-state.ts
   27:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/scraper.ts
+/path/to/example-repo/src/scraper.ts
   159:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/state.ts
+/path/to/example-repo/src/state.ts
   42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   63:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/test-db.ts
+/path/to/example-repo/src/test-db.ts
     9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
    22:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   233:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/atr/code/nab-api/src/xml-to-sqlite.ts
+/path/to/example-repo/src/xml-to-sqlite.ts
   303:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 ✖ 20 problems (0 errors, 20 warnings)
@@ -220,7 +220,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 > vitest run
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90m/Users/atr/code/nab-api[39m
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90m/path/to/example-repo[39m
 
  [32m✓[39m dist/parser.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 13[2mms[22m[39m
  [32m✓[39m src/parser.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
@@ -238,7 +238,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 > vitest run --coverage
 
 
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90m/Users/atr/code/nab-api[39m
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90m/path/to/example-repo[39m
       [2mCoverage enabled with [22m[33mv8[39m
 
  [32m✓[39m src/parser.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m

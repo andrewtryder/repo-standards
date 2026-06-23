@@ -2,6 +2,8 @@
 
 A reusable blueprint for repository hygiene, CI/CD consistency, AI/editor instruction synchronization, governance files, and migration assessment.
 
+**Current standard: Repo Standard v1.3** — see [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) for the full specification.
+
 This repository defines a baseline standard for all projects. It provides templates, workflows, AI/editor rules, and assessment tools so that every repository starts from a consistent, well-governed foundation.
 
 ## What this standard covers
@@ -15,7 +17,135 @@ This repository defines a baseline standard for all projects. It provides templa
 - **Dependabot** — weekly updates for GitHub Actions, npm, and pip
 - **Secret scanning** — TruffleHog PR diff scanning for verified secrets
 - **Node version management** — `.nvmrc` as the operational source of truth for local and CI Node version
+- **Repository health baseline** — `.gitignore`, `.env.example`, `.editorconfig`, `SECURITY.md`, issue templates, ADRs, CODEOWNERS, devcontainers, license scanning
 - **Migration assessments** — scripts that score a repo's alignment with the standard
+
+## Repository health files
+
+The repository health baseline ensures consistent project hygiene across all repositories:
+
+### Required for new repos
+
+Every new repository must include:
+
+```txt
+README.md
+.repo-policy.yml
+AGENTS.md
+CONTRIBUTING.md
+LICENSE or LICENSE.md
+SECURITY.md
+.github/PULL_REQUEST_TEMPLATE.md
+.gitignore
+.editorconfig
+.env.example
+```
+
+### Warnings for existing repos during migration
+
+When migrating existing repositories, the following items should be addressed but are not blockers:
+
+```txt
+SECURITY.md
+.env.example
+.editorconfig
+issue templates (.github/ISSUE_TEMPLATE/)
+ADR directory (docs/decisions/)
+CODEOWNERS
+devcontainer
+license scanning
+```
+
+### Health file details
+
+#### `.gitignore`
+
+- Required for all repos
+- Use templates from `templates/gitignore/` based on project type:
+  - `node.gitignore` for Node.js projects
+  - `python.gitignore` for Python projects
+  - `cloudflare-worker.gitignore` for Cloudflare Workers
+  - `mixed.gitignore` for mixed-language projects
+- Ensure `coverage/` is ignored in all repos
+- Do not ignore `.agents/memories/` if using the `antigravity-ide` Rulesync target
+
+#### `.env.example`
+
+- Required for all repos with environment variables
+- Document required environment variable names with blank or placeholder values only
+- Do not commit real secret values
+- Include Honeybadger placeholders if using Honeybadger:
+  ```txt
+  HONEYBADGER_API_KEY=
+  HONEYBADGER_ENVIRONMENT=development
+  ```
+- For Cloudflare Workers, add comments explaining that production secrets should be configured with Wrangler/Cloudflare secrets
+
+#### `.editorconfig`
+
+- Required for all repos
+- Ensures consistent code formatting across editors
+- Template at `templates/.editorconfig`
+- Default settings:
+  - LF line endings
+  - UTF-8 charset
+  - 2 spaces for JavaScript/TypeScript/JSON/YAML
+  - 4 spaces for Python
+  - Preserve trailing whitespace in Markdown
+
+#### `SECURITY.md`
+
+- Required for all repos
+- Template at `templates/SECURITY.md`
+- Include:
+  - Supported versions
+  - How to report a vulnerability
+  - Contact method placeholder
+  - Expected response timeline
+  - Request not to disclose publicly before coordination
+  - Note that secrets should never be included in reports
+
+#### Issue templates
+
+- Optional but recommended
+- Templates at `templates/.github/ISSUE_TEMPLATE/`
+- Include:
+  - `bug_report.yml` - for reporting bugs
+  - `feature_request.yml` - for feature requests
+  - `config.yml` - to disable blank issues and provide contact links
+
+#### ADRs (Architecture Decision Records)
+
+- Optional but recommended for significant architectural decisions
+- Template at `templates/docs/decisions/ADR-000-template.md`
+- Store in `docs/decisions/` directory
+- Use ADR-XXX naming convention (e.g., ADR-001, ADR-002)
+
+#### CODEOWNERS
+
+- Optional guidance, not required
+- Template at `templates/.github/CODEOWNERS`
+- Document that users must update the owner before copying
+- Example:
+  ```txt
+  # Default owner
+  * @YOUR_GITHUB_USERNAME
+  ```
+
+#### Devcontainers
+
+- Optional guidance for repos with heavier setup
+- Useful for Cloudflare Workers or Python service repos
+- Not required in the standards assessment
+- Document when and why to use devcontainers
+
+#### Dependency license scanning
+
+- Optional future quality gate
+- Not required in current standards
+- For Node: consider tools like `license-checker`
+- For Python: consider tools like `pip-licenses`
+- Document as future enhancement in repo documentation
 
 ## Repository layout
 
@@ -28,7 +158,7 @@ This repository defines a baseline standard for all projects. It provides templa
 | `templates/workflows/` | GitHub Actions workflows (CI, release, docs, AI rules, semantic PR, secret scan) and reusable workflow definitions | Copied into each repo's `.github/workflows/` |
 | `templates/licenses/` | MIT and proprietary license templates | One copied to each repo root as `LICENSE` or `LICENSE.md` |
 | `scripts/` | Assessment tools | Run against application repos; not copied |
-| `assessments/` | Example assessment output from pilot migrations | Reference only |
+| `assessments/` | Reference assessment outputs from pilot migrations; regenerated outputs are gitignored | See `assessments/README.md` |
 
 ### File lifecycle
 
@@ -94,12 +224,15 @@ node_modules/       # dependencies
 | `docs/new-repository-setup.md` | Step-by-step guide for brand-new repositories |
 | `docs/existing-repository-migration.md` | Step-by-step guide for migrating existing repositories |
 | `docs/assessment-guide.md` | How to run the assessor and interpret results |
-| `docs/repo-standard-v1.md` | Full standard specification |
+| `docs/repo-standard-v1.md` | Full standard specification (v1.3) |
 | `docs/migration-order.md` | Suggested migration order for the pilot and batches |
 | `docs/branch-protection.md` | Required checks for branch protection rules |
 | `docs/dependency-updates.md` | Dependabot configuration and customization |
 | `docs/security-scanning.md` | Secret scanning with TruffleHog |
 | `docs/template-drift.md` | Managing template drift (copied vs reusable workflows) |
+| `docs/codeowners.md` | CODEOWNERS guidance and best practices |
+| `docs/devcontainer.md` | Devcontainer setup and usage |
+| `docs/license-scanning.md` | Dependency license scanning guidance |
 
 ### Step-by-step
 

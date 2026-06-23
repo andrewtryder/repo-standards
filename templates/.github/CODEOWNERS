@@ -1,0 +1,10 @@
+# Default owner
+* @YOUR_GITHUB_USERNAME
+
+# Example: Specific directories owned by different teams
+# /src/backend @backend-team
+# /src/frontend @frontend-team
+# /docs @docs-team
+
+# Example: Specific files owned by individuals
+# /config/secrets.yml @security-team

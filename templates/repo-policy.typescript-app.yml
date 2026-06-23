@@ -1,5 +1,10 @@
 name: example-typescript-app
 profile: typescript-app
+visibility: private
+license: proprietary
+governance:
+  contributing: required
+  pull_request_template: required
 package_manager: npm
 node_version: "24"
 

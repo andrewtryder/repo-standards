@@ -22,6 +22,10 @@ jobs:
           test -f CONTRIBUTING.md
           test -f LICENSE || test -f LICENSE.md
           test -f .github/PULL_REQUEST_TEMPLATE.md || test -f PULL_REQUEST_TEMPLATE.md
+          test -f .gitignore
+          test -f .editorconfig
+          test -f .env.example || echo "::warning::.env.example not found"
+          test -f SECURITY.md || echo "::warning::SECURITY.md not found"
 
       - name: README contains required concepts
         run: |
