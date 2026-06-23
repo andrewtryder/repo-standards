@@ -47,6 +47,33 @@ SECRETISH_RE = re.compile(
     re.IGNORECASE,
 )
 
+SECRETISH_SAFE_PATHS = {
+    ".github/workflows/secret-scan.yml",
+    ".github/workflows/secret-scan.yaml",
+    "templates/workflows/secret-scan.yml",
+    "templates/workflows/secret-scan.yaml",
+}
+
+SECRETISH_IGNORED_PREFIXES = (
+    "node_modules/",
+    "coverage/",
+    "htmlcov/",
+    "dist/",
+    "build/",
+    ".venv/",
+    "venv/",
+    "__pycache__/",
+)
+
+
+def is_secretish_path(rel: str) -> bool:
+    normalized = rel.replace("\\", "/")
+    if normalized in SECRETISH_SAFE_PATHS:
+        return False
+    if any(normalized.startswith(prefix) for prefix in SECRETISH_IGNORED_PREFIXES):
+        return False
+    return bool(SECRETISH_RE.search(normalized))
+
 COVERAGE_ALL_FILES_RE = re.compile(
     r"All files\s+\|\s+([0-9.]+)\s+\|\s+([0-9.]+)\s+\|\s+([0-9.]+)\s+\|\s+([0-9.]+)"
 )
@@ -537,7 +564,12 @@ def score_report(
     # Secrets and deploy files
     if changed["secretish_files"]:
         score -= 20
-        blockers.append("Secret-like files appear changed or untracked")
+        blockers.append(
+            "Secret-like files appear changed or untracked: "
+            + ", ".join(changed["secretish_files"])
+            if changed["secretish_files"]
+            else "Secret-like files appear changed or untracked"
+        )
     if changed["risky_deploy_files"]:
         warnings.append("Deploy/release files changed; manually verify this was intentional")
 
@@ -763,7 +795,7 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
             "agent_memories": [f for f in files if AGENT_MEMORY_RE.search(f)],
             "suspicious_agents_paths": [f for f in files if SUSPICIOUS_AGENTS_RE.search(f)],
             "risky_deploy_files": [f for f in files if DEPLOY_RE.search(f)],
-            "secretish_files": [f for f in files if SECRETISH_RE.search(f)],
+            "secretish_files": [f for f in files if is_secretish_path(f)],
         },
     }
 

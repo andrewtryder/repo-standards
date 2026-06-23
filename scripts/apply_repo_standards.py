@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -119,6 +120,14 @@ class MigrationSummary:
     detection: dict[str, Any]
     workflow_strategy: str
     apply_mode: bool
+    rules_strategy: str = "profile"
+    selected_rules: list[str] = field(default_factory=list)
+    existing_generated_outputs: list[str] = field(default_factory=list)
+    generated_output_rewrite_allowed: bool = False
+    tracked_generated_artifacts: list[str] = field(default_factory=list)
+    cleanup_generated_artifacts: bool = False
+    analyze_only: bool = False
+    recommendations: list[str] = field(default_factory=list)
     actions: list[Action] = field(default_factory=list)
     rulesync_ran: bool = False
     rulesync_result: str = "skipped"
@@ -129,6 +138,197 @@ class MigrationSummary:
 
     def by_type(self, action_type: ActionType) -> list[Action]:
         return [a for a in self.actions if a.action == action_type]
+
+    @property
+    def apply_mode_label(self) -> str:
+        if self.analyze_only:
+            return "analyze-existing"
+        return "apply" if self.apply_mode else "dry-run"
+
+
+def selected_rule_files(
+    standards: Path, profile: str, language: str, strategy: str
+) -> list[Path]:
+    rules_dir = standards / "ai" / "rules"
+
+    if strategy == "all":
+        return sorted(rules_dir.glob("*.md"))
+
+    if profile == "mixed-special" or language == "mixed":
+        return sorted(rules_dir.glob("*.md"))
+
+    names = {"00-org.md"}
+
+    if language == "typescript" or profile.startswith("typescript-"):
+        names.add("10-typescript.md")
+
+    if language == "python" or profile.startswith("python-"):
+        names.add("20-python.md")
+
+    return [rules_dir / name for name in sorted(names) if (rules_dir / name).is_file()]
+
+
+def rulesync_delete_enabled(repo: Path, standards: Path) -> bool:
+    for candidate in (repo / "rulesync.jsonc", standards / "templates" / "rulesync.jsonc"):
+        if not candidate.is_file():
+            continue
+        text = read_text(candidate)
+        if re.search(r'"delete"\s*:\s*true', text):
+            return True
+    return False
+
+
+def expected_generated_agent_rules(selected_rules: list[Path]) -> set[str]:
+    return {f".agents/rules/{rule.name}" for rule in selected_rules}
+
+
+def expected_generated_cursor_rules(selected_rules: list[Path]) -> set[str]:
+    return {f".cursor/rules/{rule.stem}.mdc" for rule in selected_rules}
+
+
+def existing_generated_agent_rules(repo: Path) -> list[str]:
+    rules_dir = repo / ".agents" / "rules"
+    if not rules_dir.is_dir():
+        return []
+    return sorted(
+        f".agents/rules/{path.name}"
+        for path in rules_dir.glob("*.md")
+        if path.is_file()
+    )
+
+
+def existing_generated_cursor_rules(repo: Path) -> list[str]:
+    rules_dir = repo / ".cursor" / "rules"
+    if not rules_dir.is_dir():
+        return []
+    return sorted(
+        f".cursor/rules/{path.name}"
+        for path in rules_dir.glob("*.mdc")
+        if path.is_file()
+    )
+
+
+def preflight_generated_outputs(
+    summary: MigrationSummary,
+    repo: Path,
+    standards: Path,
+    selected_rules: list[Path],
+    *,
+    for_apply: bool,
+) -> None:
+    expected_agents = expected_generated_agent_rules(selected_rules)
+    expected_cursor = expected_generated_cursor_rules(selected_rules)
+
+    orphaned: list[str] = []
+    for rel in existing_generated_agent_rules(repo):
+        if rel not in expected_agents:
+            orphaned.append(rel)
+            summary.existing_generated_outputs.append(rel)
+            summary.actions.append(
+                Action(
+                    "WARN",
+                    rel,
+                    "Existing generated agent rule is not represented in selected "
+                    "Rulesync source and may be removed by Rulesync.",
+                )
+            )
+            summary.recommendations.append(
+                f"Review whether `{rel}` should be migrated into "
+                f"`.rulesync/rules/{Path(rel).name}` before running Rulesync."
+            )
+
+    for rel in existing_generated_cursor_rules(repo):
+        if rel not in expected_cursor:
+            summary.existing_generated_outputs.append(rel)
+            summary.actions.append(
+                Action(
+                    "WARN",
+                    rel,
+                    "Existing generated Cursor rule is not represented in selected "
+                    "Rulesync source and may be removed by Rulesync.",
+                )
+            )
+
+    if rulesync_delete_enabled(repo, standards):
+        summary.actions.append(
+            Action(
+                "WARN",
+                "rulesync.jsonc",
+                'rulesync.jsonc has delete=true; existing generated output may be deleted.',
+            )
+        )
+
+    if orphaned and not summary.generated_output_rewrite_allowed and for_apply:
+        for rel in orphaned:
+            summary.actions.append(
+                Action(
+                    "BLOCK",
+                    rel,
+                    "Rulesync may remove existing generated output; use "
+                    "--allow-generated-output-rewrite to proceed.",
+                )
+            )
+
+
+def tracked_coverage_artifacts(repo: Path) -> list[str]:
+    try:
+        completed = subprocess.run(
+            ["git", "ls-files", "coverage", "htmlcov", ".coverage"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return []
+    if completed.returncode != 0:
+        return []
+    return [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+
+
+def plan_coverage_cleanup(
+    summary: MigrationSummary,
+    repo: Path,
+    cleanup: bool,
+) -> None:
+    tracked = tracked_coverage_artifacts(repo)
+    summary.tracked_generated_artifacts = tracked
+    if not tracked:
+        return
+
+    detail = ", ".join(tracked[:10])
+    if len(tracked) > 10:
+        detail += f" (+{len(tracked) - 10} more)"
+
+    if cleanup:
+        summary.actions.append(
+            Action(
+                "MERGE",
+                "git index",
+                f"Remove tracked generated coverage artifacts from git index: {detail}",
+            )
+        )
+    else:
+        summary.actions.append(
+            Action(
+                "WARN",
+                "coverage artifacts",
+                "Tracked generated coverage artifacts detected; use "
+                "--cleanup-generated-artifacts to remove from git index.",
+            )
+        )
+
+
+def remove_tracked_coverage_from_index(repo: Path, tracked: list[str]) -> None:
+    if not tracked:
+        return
+    subprocess.run(
+        ["git", "rm", "-r", "--cached", "--", *tracked],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 def policy_template_path(standards: Path, profile: str) -> Path:
@@ -290,17 +490,17 @@ def plan_rulesync_rules(
     summary: MigrationSummary,
     standards: Path,
     repo: Path,
+    selected_rules: list[Path],
     update_existing: bool,
     force: bool,
 ) -> None:
-    rules_dir = standards / "ai" / "rules"
-    if not rules_dir.is_dir():
+    if not selected_rules:
         summary.actions.append(
-            Action("BLOCK", ".rulesync/rules", "ai/rules source missing in standards.")
+            Action("BLOCK", ".rulesync/rules", "No AI rules selected for profile.")
         )
         return
 
-    for source in sorted(rules_dir.glob("*.md")):
+    for source in selected_rules:
         rel = f".rulesync/rules/{source.name}"
         plan_file_copy(
             summary,
@@ -430,12 +630,19 @@ def build_plan(
     mode: str,
     profile: str | None,
     workflow_strategy: str,
+    rules_strategy: str,
     update_existing: bool,
     force: bool,
+    allow_generated_output_rewrite: bool,
+    cleanup_generated_artifacts: bool,
+    for_apply: bool,
 ) -> MigrationSummary:
     detection = detect_repo(repo, standards)
     selected_profile = profile or detection["recommended_profile"]
     language = detection["language"]
+    selected_rules = selected_rule_files(
+        standards, selected_profile, language, rules_strategy
+    )
 
     summary = MigrationSummary(
         repo=repo,
@@ -444,6 +651,10 @@ def build_plan(
         detection=detection,
         workflow_strategy=workflow_strategy,
         apply_mode=False,
+        rules_strategy=rules_strategy,
+        selected_rules=[rule.name for rule in selected_rules],
+        generated_output_rewrite_allowed=allow_generated_output_rewrite,
+        cleanup_generated_artifacts=cleanup_generated_artifacts,
     )
 
     scan_protected_workflows(summary, repo)
@@ -468,7 +679,9 @@ def build_plan(
         force=force,
     )
 
-    plan_rulesync_rules(summary, standards, repo, update_existing, force)
+    plan_rulesync_rules(
+        summary, standards, repo, selected_rules, update_existing, force
+    )
 
     plan_file_copy(
         summary,
@@ -509,16 +722,10 @@ def build_plan(
 
     plan_nvmrc(summary, standards, repo, language, force)
     plan_gitignore_merge(summary, repo)
-
-    agents_dir = repo / ".agents"
-    if agents_dir.is_dir():
-        summary.actions.append(
-            Action(
-                "WARN",
-                ".agents",
-                "Existing .agents directory detected; Rulesync may update generated agent files.",
-            )
-        )
+    plan_coverage_cleanup(summary, repo, cleanup_generated_artifacts)
+    preflight_generated_outputs(
+        summary, repo, standards, selected_rules, for_apply=for_apply
+    )
 
     summary.actions.append(
         Action("WARN", repo.as_posix(), "Deploy behavior preserved.")
@@ -530,6 +737,78 @@ def build_plan(
     if mode == "new":
         summary.actions.append(
             Action("WARN", repo.as_posix(), "Review profile before first commit.")
+        )
+
+    return summary
+
+
+def build_analysis(
+    repo: Path,
+    standards: Path,
+    *,
+    mode: str,
+    profile: str | None,
+    rules_strategy: str,
+) -> MigrationSummary:
+    detection = detect_repo(repo, standards)
+    selected_profile = profile or detection["recommended_profile"]
+    language = detection["language"]
+    selected_rules = selected_rule_files(
+        standards, selected_profile, language, rules_strategy
+    )
+
+    summary = MigrationSummary(
+        repo=repo,
+        mode=mode,
+        profile=selected_profile,
+        detection=detection,
+        workflow_strategy="n/a",
+        apply_mode=False,
+        rules_strategy=rules_strategy,
+        selected_rules=[rule.name for rule in selected_rules],
+        analyze_only=True,
+    )
+
+    scan_protected_workflows(summary, repo)
+    plan_nvmrc(summary, standards, repo, language, force=False)
+    plan_coverage_cleanup(summary, repo, cleanup=False)
+    preflight_generated_outputs(
+        summary, repo, standards, selected_rules, for_apply=False
+    )
+
+    semantic = repo / ".github" / "workflows" / "semantic-pull-request.yml"
+    template = standards / "templates" / "workflows" / "semantic-pull-request.yml"
+    if semantic.is_file() and template.is_file() and not files_match(template, semantic):
+        summary.actions.append(
+            Action(
+                "WARN",
+                ".github/workflows/semantic-pull-request.yml",
+                "Existing semantic PR workflow differs from template and will be skipped "
+                "unless update flags are used.",
+            )
+        )
+    elif semantic.is_file() and template.is_file() and files_match(template, semantic):
+        summary.actions.append(
+            Action(
+                "SKIP",
+                ".github/workflows/semantic-pull-request.yml",
+                "Already matches standards.",
+            )
+        )
+
+    if language == "typescript" or selected_profile.startswith("typescript-"):
+        summary.actions.append(
+            Action(
+                "WARN",
+                "rules",
+                "TypeScript profile should copy org + TypeScript rules only.",
+            )
+        )
+
+    summary.recommendations.append("Review `.repo-policy.yml` before adoption.")
+    if summary.existing_generated_outputs:
+        summary.recommendations.append(
+            "Migrate repo-specific generated rules into `.rulesync/rules/` before Rulesync."
         )
 
     return summary
@@ -596,7 +875,12 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
             continue
 
         if action.path.startswith(".rulesync/rules/"):
-            source = standards / "ai" / "rules" / Path(action.path).name
+            selected = [
+                standards / "ai" / "rules" / Path(action.path).name
+                for name in summary.selected_rules
+                if name == Path(action.path).name
+            ]
+            source = selected[0] if selected else standards / "ai" / "rules" / Path(action.path).name
             execute_create_or_update(source, None, target)
             continue
 
@@ -682,16 +966,42 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
         f"Package manager: `{det.get('package_manager')}`",
         f"Deployment provider: `{det.get('deployment_provider')}`",
         f"Workflow strategy: `{summary.workflow_strategy}`",
-        f"Apply mode: `{summary.apply_mode}`",
+        f"Rules strategy: `{summary.rules_strategy}`",
+        f"Apply mode: `{summary.apply_mode_label}`",
+        f"Generated-output rewrite allowed: `{summary.generated_output_rewrite_allowed}`",
+        f"Cleanup generated artifacts: `{summary.cleanup_generated_artifacts}`",
         "",
         "## Detection",
         "",
         f"- Recommended profile: `{det.get('recommended_profile')}`",
         f"- Confidence: `{det.get('confidence')}`",
         "",
-        "## Actions",
+        "## Selected AI rules",
         "",
     ]
+
+    if summary.selected_rules:
+        lines.extend(f"- `{name}`" for name in summary.selected_rules)
+    else:
+        lines.append("- None")
+
+    lines.extend(["", "## Existing generated outputs", ""])
+    if summary.existing_generated_outputs:
+        lines.extend(f"- `{path}`" for path in summary.existing_generated_outputs)
+    else:
+        lines.append("- None")
+
+    lines.extend(["", "## Tracked generated artifacts", ""])
+    if summary.tracked_generated_artifacts:
+        lines.extend(f"- `{path}`" for path in summary.tracked_generated_artifacts)
+    else:
+        lines.append("- None")
+
+    if summary.recommendations:
+        lines.extend(["", "## Recommendations", ""])
+        lines.extend(f"- {item}" for item in summary.recommendations)
+
+    lines.extend(["", "## Actions", ""])
 
     for action_type in ("CREATE", "UPDATE", "SKIP", "MERGE", "WARN", "BLOCK"):
         items = summary.by_type(action_type)
@@ -753,7 +1063,14 @@ def summary_to_json(summary: MigrationSummary) -> dict[str, Any]:
         "package_manager": summary.detection.get("package_manager"),
         "deployment_provider": summary.detection.get("deployment_provider"),
         "workflow_strategy": summary.workflow_strategy,
-        "apply_mode": summary.apply_mode,
+        "rules_strategy": summary.rules_strategy,
+        "apply_mode": summary.apply_mode_label,
+        "generated_output_rewrite_allowed": summary.generated_output_rewrite_allowed,
+        "cleanup_generated_artifacts": summary.cleanup_generated_artifacts,
+        "selected_rules": summary.selected_rules,
+        "existing_generated_outputs": summary.existing_generated_outputs,
+        "tracked_generated_artifacts": summary.tracked_generated_artifacts,
+        "recommendations": summary.recommendations,
         "detection": summary.detection,
         "actions": [
             {"action": a.action, "path": a.path, "detail": a.detail}
@@ -789,6 +1106,17 @@ def parse_args() -> argparse.Namespace:
         choices=("copied", "reusable", "none"),
         default="copied",
     )
+    parser.add_argument(
+        "--rules-strategy",
+        choices=("profile", "all"),
+        default="profile",
+        help="Which AI rules to copy (default: profile).",
+    )
+    parser.add_argument(
+        "--analyze-existing",
+        action="store_true",
+        help="Analyze existing repo without planning copy operations.",
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="Print actions only.")
     mode.add_argument("--apply", action="store_true", help="Write safe changes.")
@@ -816,6 +1144,16 @@ def parse_args() -> argparse.Namespace:
         "--run-assessment",
         action="store_true",
         help="Run assess_repo_standards.py after applying.",
+    )
+    parser.add_argument(
+        "--allow-generated-output-rewrite",
+        action="store_true",
+        help="Allow Rulesync to rewrite or delete existing generated outputs.",
+    )
+    parser.add_argument(
+        "--cleanup-generated-artifacts",
+        action="store_true",
+        help="Remove tracked coverage artifacts from the git index.",
     )
     parser.add_argument(
         "--summary-file",
@@ -847,31 +1185,64 @@ def main() -> int:
         return 1
 
     apply_mode = args.apply
+
+    if args.analyze_existing:
+        summary = build_analysis(
+            repo,
+            standards,
+            mode=args.mode,
+            profile=args.profile,
+            rules_strategy=args.rules_strategy,
+        )
+        markdown = format_summary_markdown(summary)
+        print(markdown)
+        if args.json:
+            print(json.dumps(summary_to_json(summary), indent=2, sort_keys=True))
+        return 0
+
     summary = build_plan(
         repo,
         standards,
         mode=args.mode,
         profile=args.profile,
         workflow_strategy=args.workflow_strategy,
+        rules_strategy=args.rules_strategy,
         update_existing=args.update_existing,
         force=args.force,
+        allow_generated_output_rewrite=args.allow_generated_output_rewrite,
+        cleanup_generated_artifacts=args.cleanup_generated_artifacts,
+        for_apply=apply_mode,
     )
     summary.apply_mode = apply_mode
 
     if apply_mode:
-        if summary.by_type("BLOCK"):
+        blocks = summary.by_type("BLOCK")
+        if blocks:
             print("Error: blocked actions prevent apply.", file=sys.stderr)
-            for item in summary.by_type("BLOCK"):
+            for item in blocks:
                 print(f"  BLOCK {item.path}: {item.detail}", file=sys.stderr)
             return 1
 
         apply_actions(summary, standards, repo)
+
+        if summary.cleanup_generated_artifacts and summary.tracked_generated_artifacts:
+            remove_tracked_coverage_from_index(repo, summary.tracked_generated_artifacts)
 
         run_rulesync_flag = not args.skip_rulesync
         if args.run_rulesync:
             run_rulesync_flag = True
 
         if run_rulesync_flag:
+            # Re-check blocks related to generated output rewrite before Rulesync.
+            rewrite_blocks = [
+                a
+                for a in summary.by_type("BLOCK")
+                if "generated output" in a.detail.lower()
+            ]
+            if rewrite_blocks and not args.allow_generated_output_rewrite:
+                print("Error: Rulesync blocked by existing generated outputs.", file=sys.stderr)
+                return 1
+
             summary.rulesync_ran = True
             ok, output = run_rulesync(repo)
             summary.rulesync_output = output

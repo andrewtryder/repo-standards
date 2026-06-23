@@ -18,3 +18,8 @@ assessments/generated/*
 
 # MkDocs build output
 site/
+
+# Local environment
+.env
+.env.*
+!.env.example

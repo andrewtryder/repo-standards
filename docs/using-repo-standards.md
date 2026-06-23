@@ -87,7 +87,17 @@ Use `--mode new` for a brand-new repository. Use `--format shell` for a commente
 
 ## One-command apply
 
-For a dry run:
+### Analyze existing repo
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --analyze-existing
+```
+
+### Dry run
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
@@ -95,10 +105,11 @@ python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --standards "$REPO_STANDARDS" \
   --mode existing \
   --workflow-strategy copied \
+  --rules-strategy profile \
   --dry-run
 ```
 
-To apply safe standards infrastructure:
+### Apply safely
 
 ```bash
 python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
@@ -106,10 +117,37 @@ python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
   --standards "$REPO_STANDARDS" \
   --mode existing \
   --workflow-strategy copied \
+  --rules-strategy profile \
   --apply
 ```
 
-The script preserves deploy behavior, package manager files, and application source. Review `.repo-policy.yml` after apply — detection recommends, but the adopted policy is authoritative.
+### If existing generated outputs should be rewritten
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --allow-generated-output-rewrite
+```
+
+### If tracked coverage artifacts should be removed from git
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --cleanup-generated-artifacts
+```
+
+The apply script does not change deploy workflows, release workflows, package manager files, or application source. Review `.repo-policy.yml` after apply.
 
 ## New repository flow
 

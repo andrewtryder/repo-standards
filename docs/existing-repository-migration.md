@@ -54,7 +54,9 @@ python3 /path/to/repo-standards/scripts/apply_repo_standards.py \
   --dry-run
 ```
 
-Use `--apply` to write safe changes. The script skips existing files by default, never modifies deploy workflows, and writes `.repo-standards-migration-summary.md`. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
+Use `--apply` to write safe changes. The script skips existing files by default, never modifies deploy workflows, and writes `.repo-standards-migration-summary.md`.
+
+Use `--analyze-existing` to inspect generated AI/editor outputs, deploy workflows, and coverage artifacts before applying. Use `--rules-strategy profile` to copy only profile-relevant AI rules. Use `--allow-generated-output-rewrite` only when you accept Rulesync deleting existing generated agent/editor files. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
 
 ## Step 3: Run the assessor (baseline)
 
