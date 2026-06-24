@@ -113,6 +113,46 @@ def _has_license(repo: Path) -> bool:
     return False
 
 
+def _read_repo_policy_fields(repo: Path) -> tuple[str | None, str | None]:
+    policy = repo / ".repo-policy.yml"
+    if not policy.is_file():
+        return None, None
+    text = read_text(policy)
+    visibility = None
+    license_value = None
+    vis_match = re.search(r'(?m)^visibility:\s*["\']?([^"\'\n#]+)', text)
+    if vis_match:
+        visibility = vis_match.group(1).strip().lower()
+    lic_match = re.search(r'(?m)^license:\s*["\']?([^"\'\n#]+)', text)
+    if lic_match:
+        license_value = lic_match.group(1).strip().lower()
+    return visibility, license_value
+
+
+def _license_warning_needed(
+    visibility: str | None, license_value: str | None, has_license_file: bool
+) -> bool:
+    if has_license_file or not license_value:
+        return False
+    closed = {"proprietary", "none", "unlicensed"}
+    open_source = {
+        "mit",
+        "apache-2.0",
+        "bsd-2-clause",
+        "bsd-3-clause",
+        "mpl-2.0",
+        "gpl-3.0",
+        "lgpl-3.0",
+        "agpl-3.0",
+        "isc",
+    }
+    vis = (visibility or "private").strip().lower()
+    lic = license_value.strip().lower()
+    if lic in closed:
+        return vis == "public"
+    return lic in open_source
+
+
 def run(cmd: list[str], cwd: Path, timeout: int = 120) -> dict[str, Any]:
     try:
         p = subprocess.run(
@@ -599,7 +639,19 @@ def score_report(
     if not gov["has_pr_template"]:
         warnings.append("Missing pull request template (`.github/PULL_REQUEST_TEMPLATE.md`); recommended but not yet required")
     if not gov["has_license"]:
-        warnings.append("Missing `LICENSE` or `LICENSE.md`; recommended but not yet required. Choose MIT for public repos, proprietary for private repos.")
+        visibility = gov.get("policy_visibility")
+        license_value = gov.get("policy_license")
+        if _license_warning_needed(visibility, license_value, False):
+            if license_value in {"proprietary", "none", "unlicensed"} and visibility == "public":
+                warnings.append(
+                    "Public repository declares a closed license in `.repo-policy.yml`; "
+                    "review visibility and license."
+                )
+            else:
+                warnings.append(
+                    "Missing `LICENSE` or `LICENSE.md` for declared open-source license in "
+                    "`.repo-policy.yml`; add a license intentionally or adjust policy."
+                )
 
     # Repository health baseline (warnings initially for existing repos)
     if not gi["has_editorconfig"]:
@@ -769,6 +821,7 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
     coverage_added_or_modified, coverage_deleted, all_coverage_paths = classify_coverage_changes(changed_map)
     files = sorted(changed_map.keys())
 
+    policy_visibility, policy_license = _read_repo_policy_fields(repo)
     state = {
         "package": package_state(repo),
         "workflows": workflows_state(repo),
@@ -788,6 +841,8 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
             "has_contributing": exists(repo, "CONTRIBUTING.md"),
             "has_pr_template": _has_pr_template(repo),
             "has_license": _has_license(repo),
+            "policy_visibility": policy_visibility,
+            "policy_license": policy_license,
         },
         "changed": {
             "files": files,

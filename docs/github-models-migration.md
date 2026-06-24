@@ -9,7 +9,7 @@ Optional GitHub Models advisory assessment helps classify migration risks for ex
 - It is useful for classifying ambiguous workflows and migration risks.
 - Deterministic detection and the apply script remain authoritative for file actions.
 
-Migrated workflow templates use migration-friendly defaults: secret scan avoids duplicate TruffleHog flags, docs-check warns (instead of failing) on missing `.editorconfig` or license files, and README concept checks are warning-only unless `DOCS_CHECK_STRICT=true`.
+Migrated workflow templates use migration-friendly defaults: secret scan avoids duplicate TruffleHog flags, docs-check warns (instead of failing) on missing `.editorconfig` or license files when policy allows, and README concept checks are warning-only unless `DOCS_CHECK_STRICT=true`. Use `--visibility private --license proprietary` for closed-source migrations.
 
 ## Token
 

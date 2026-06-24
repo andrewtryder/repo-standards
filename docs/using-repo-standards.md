@@ -164,13 +164,68 @@ Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existin
 - **README concepts** are warning-only unless the repo sets `DOCS_CHECK_STRICT=true` as a GitHub Actions variable.
 - **`.editorconfig`** is added by the apply script when missing.
 - **License** is never created automatically. The apply script warns when `.repo-policy.yml` declares an open-source license but no license file exists.
-- **`rulesync.jsonc`** is copied in Prettier-compatible format. For Node/TypeScript repos, the apply script best-effort runs `npx prettier --write rulesync.jsonc` after apply (use `--skip-format-generated` to disable).
+- **`rulesync.jsonc`** is copied in Prettier-compatible format. Use `--format-touched` after apply to format migration-touched files, or `--format-existing-docs` when existing Markdown (such as `CHANGELOG.md`) fails Prettier checks.
+- **Visibility and license** default to `private`/`proprietary` for existing repos when not inferred. Override with `--visibility` and `--license`, or rely on existing `.repo-policy.yml` / GitHub metadata when available.
 
-If downstream formatting CI still fails, run:
+### Private repo migration
 
 ```bash
-npx prettier --write rulesync.jsonc
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --visibility private \
+  --license proprietary \
+  --apply
 ```
+
+### Public MIT repo migration
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --visibility public \
+  --license MIT \
+  --apply
+```
+
+### Formatting touched files
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --format-touched
+```
+
+### Formatting existing docs only when requested
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --format-existing-docs
+```
+
+Formatting existing docs can create unrelated diffs. It is useful when standards checks expose pre-existing Prettier debt, such as `CHANGELOG.md`. It is not enabled by default.
 
 ## New repository flow
 
