@@ -2197,7 +2197,7 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
         f"Formatting touched files: `{summary.format_touched}`",
         f"Formatting existing docs: `{summary.format_existing_docs}`",
         f"Formatting result: `{summary.formatting_result}`",
-        f"Add license: `{summary.add_license}`",
+        f"Add license: `{str(summary.add_license).lower()}`",
         "",
         "## Detection",
         "",
