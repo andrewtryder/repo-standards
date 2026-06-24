@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and design discussion
+    url: https://github.com/andrewtryder/repo-standards/discussions
+    about: Ask usage questions or discuss standards design outside the issue tracker.
+  - name: Security vulnerability report
+    url: https://github.com/andrewtryder/repo-standards/security/advisories/new
+    about: Privately report a security vulnerability.
