@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/andrewtryder/repo-standards/compare/v1.0.0...v1.1.0) (2026-06-24)
+
+
+### Features
+
+* **detection:** add optional GitHub Models advisor ([db344e6](https://github.com/andrewtryder/repo-standards/commit/db344e6a0ef7b86c8cb09bc76327356e0e8bb174))
+* **detection:** add optional GitHub Models advisor ([bab428a](https://github.com/andrewtryder/repo-standards/commit/bab428a19c0bdae38be4dd181e728b8e403ab89a))
+* **standards:** add explicit license creation option ([114e9d0](https://github.com/andrewtryder/repo-standards/commit/114e9d0b9bb429850d0a6089f768da9ed94ba4e5))
+* **standards:** add explicit license creation option ([3b5934e](https://github.com/andrewtryder/repo-standards/commit/3b5934e4544a3f957281d309e5ba398abad89a92))
+
+
+### Bug Fixes
+
+* **ci:** test add-license block on empty temp repo ([c759196](https://github.com/andrewtryder/repo-standards/commit/c7591963defd41c561c554f9494556cd725a78c8))
+* **standards:** lowercase add-license summary flag ([93042fd](https://github.com/andrewtryder/repo-standards/commit/93042fd4fb886a08de9596f5518acb6c6f199f29))
+* **standards:** support private migrations and formatting ([88615c1](https://github.com/andrewtryder/repo-standards/commit/88615c153a18d82170ed27f23099cb98ffaf2220))
+
 ## 1.0.0 (2026-06-23)
 
 
