@@ -279,6 +279,22 @@ python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
 
 Formatting existing docs can create unrelated diffs. It is useful when standards checks expose pre-existing Prettier debt, such as `CHANGELOG.md`. It is not enabled by default.
 
+### Optional: GitHub Models-assisted detection
+
+When deterministic detection is ambiguous, an optional advisory classifier can help interpret signals. It is read-only and does not replace `.repo-policy.yml`.
+
+Dry run (no API call):
+
+```bash
+python3 "$REPO_STANDARDS/scripts/model_assisted_repo_detection.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --dry-run-summary \
+  --format markdown
+```
+
+See [`github-models-detection.md`](github-models-detection.md) for token setup and live usage.
+
 ## New repository flow
 
 ```bash
@@ -604,6 +620,7 @@ This repository includes [`.github/ISSUE_TEMPLATE/adopt-repo-standards.yml`](htt
 | New repo setup (full) | [`new-repository-setup.md`](new-repository-setup.md) |
 | Existing repo migration (full) | [`existing-repository-migration.md`](existing-repository-migration.md) |
 | Profile detection | [`detection.md`](detection.md) |
+| GitHub Models detection | [`github-models-detection.md`](github-models-detection.md) |
 | Profiles | [`profiles.md`](profiles.md) |
 | Assessment | [`assessment-guide.md`](assessment-guide.md) |
 | Reusable workflows (full) | [`reusable-workflows.md`](reusable-workflows.md) |

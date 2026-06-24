@@ -53,6 +53,7 @@ nav:
       - Profiles: profiles.md
       - Detection: detection.md
       - GitHub Models migration: github-models-migration.md
+      - GitHub Models detection: github-models-detection.md
       - Assessment guide: assessment-guide.md
   - Specification:
       - Repo Standard v1.3: repo-standard-v1.md

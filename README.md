@@ -48,6 +48,8 @@ Then create or update `.repo-policy.yml`.
 
 To apply standards safely with a dry-run or one-command apply, see [`docs/using-repo-standards.md`](docs/using-repo-standards.md#one-command-apply).
 
+For ambiguous repositories, optional GitHub Models-assisted detection can provide advisory context — see [`docs/github-models-detection.md`](docs/github-models-detection.md).
+
 ## Source-of-truth model
 
 In each application repository:
@@ -73,6 +75,7 @@ This repository uses Release Please with the `simple` strategy. Release Please s
 | Existing repo migration | [`docs/existing-repository-migration.md`](docs/existing-repository-migration.md) |
 | Profiles | [`docs/profiles.md`](docs/profiles.md) |
 | Detection | [`docs/detection.md`](docs/detection.md) |
+| GitHub Models detection | [`docs/github-models-detection.md`](docs/github-models-detection.md) |
 | Assessment | [`docs/assessment-guide.md`](docs/assessment-guide.md) |
 | Full specification | [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) |
 | Branch protection | [`docs/branch-protection.md`](docs/branch-protection.md) |
