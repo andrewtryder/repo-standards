@@ -202,6 +202,34 @@ jobs:
             --format-touched \
             --dry-run
 
+      - name: Apply script public MIT add-license dry-run smoke test
+        run: |
+          python3 scripts/apply_repo_standards.py \
+            --repo . \
+            --standards . \
+            --mode existing \
+            --adoption-level baseline \
+            --workflow-strategy none \
+            --rules-strategy profile \
+            --visibility public \
+            --license MIT \
+            --add-license \
+            --dry-run | grep -q "Add license: \`true\`"
+
+      - name: Apply script private proprietary add-license dry-run smoke test
+        run: |
+          python3 scripts/apply_repo_standards.py \
+            --repo . \
+            --standards . \
+            --mode existing \
+            --adoption-level baseline \
+            --workflow-strategy none \
+            --rules-strategy profile \
+            --visibility private \
+            --license proprietary \
+            --add-license \
+            --dry-run | grep -q "BLOCK LICENSE"
+
       - name: Assessor smoke test
         run: |
           python3 scripts/assess_repo_standards.py \

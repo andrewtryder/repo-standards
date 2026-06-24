@@ -117,11 +117,24 @@ Customize the project name and any repo-specific contribution guidelines.
 
 ### LICENSE
 
-For public/open-source repos:
+For public/open-source MIT repos, use the apply script with `--add-license`:
 
 ```bash
-cp /path/to/repo-standards/templates/licenses/LICENSE-MIT.txt LICENSE
-# Edit: replace [year] and [copyright holder]
+python3 /path/to/repo-standards/scripts/apply_repo_standards.py \
+  --repo . \
+  --standards /path/to/repo-standards \
+  --mode new \
+  --visibility public \
+  --license MIT \
+  --add-license \
+  --apply
+```
+
+Or copy manually:
+
+```bash
+cp /path/to/repo-standards/LICENSE LICENSE
+# Edit: replace copyright holder and year
 ```
 
 For private/proprietary repos:

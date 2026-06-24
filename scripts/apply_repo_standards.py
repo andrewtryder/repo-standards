@@ -195,6 +195,8 @@ OPEN_SOURCE_LICENSES = {
 
 CLOSED_LICENSES = {"proprietary", "none", "unlicensed"}
 
+SUPPORTED_LICENSE_TEMPLATES = {"mit": "LICENSE"}
+
 LICENSE_CANONICAL = {
     "mit": "MIT",
     "apache-2.0": "Apache-2.0",
@@ -300,6 +302,7 @@ class MigrationSummary:
     format_existing_docs: bool = False
     formatting_result: str = "skipped"
     touched_paths: list[str] = field(default_factory=list)
+    add_license: bool = False
 
     def by_type(self, action_type: ActionType) -> list[Action]:
         return [a for a in self.actions if a.action == action_type]
@@ -1131,23 +1134,113 @@ def preflight_generated_outputs(
             )
 
 
-def plan_license_warning(summary: MigrationSummary, repo: Path) -> None:
+def has_license_file(repo: Path) -> bool:
+    return (repo / "LICENSE").is_file() or (repo / "LICENSE.md").is_file()
+
+
+def resolve_license_value(summary: MigrationSummary, repo: Path) -> str | None:
+    if summary.policy_license:
+        return summary.policy_license
     policy_text = summary.rendered_repo_policy
+    if not policy_text and (repo / ".repo-policy.yml").is_file():
+        policy_text = read_text(repo / ".repo-policy.yml")
     if not policy_text:
-        policy = repo / ".repo-policy.yml"
-        if policy.is_file():
-            policy_text = read_text(policy)
-    if not policy_text:
+        return None
+    _, license_value = parse_policy_from_text(policy_text)
+    return license_value
+
+
+def plan_license_file(
+    summary: MigrationSummary,
+    repo: Path,
+    standards: Path,
+    *,
+    add_license: bool,
+    force: bool,
+) -> None:
+    license_value = resolve_license_value(summary, repo)
+    if not license_value:
         return
 
-    visibility, license_value = parse_policy_from_text(policy_text)
-    if summary.policy_visibility:
-        visibility = summary.policy_visibility
-    if summary.policy_license:
-        license_value = summary.policy_license
+    lic = license_value.strip().lower()
+    if has_license_file(repo):
+        if force:
+            add_action(
+                summary,
+                Action(
+                    "WARN",
+                    "LICENSE",
+                    "Existing license file found; not overwriting.",
+                ),
+            )
+        else:
+            add_action(
+                summary,
+                Action("SKIP", "LICENSE", "Existing license file found."),
+            )
+        return
 
-    has_license_file = (repo / "LICENSE").is_file() or (repo / "LICENSE.md").is_file()
-    needed, message = license_warning_needed(visibility, license_value, has_license_file)
+    if add_license:
+        if lic in CLOSED_LICENSES:
+            add_action(
+                summary,
+                Action(
+                    "BLOCK",
+                    "LICENSE",
+                    f"--add-license cannot be used with license {license_value}.",
+                ),
+            )
+            return
+        template_name = SUPPORTED_LICENSE_TEMPLATES.get(lic)
+        if not template_name:
+            add_action(
+                summary,
+                Action(
+                    "BLOCK",
+                    "LICENSE",
+                    "--add-license currently supports MIT only; add LICENSE manually "
+                    "or add a template.",
+                ),
+            )
+            return
+        source = standards / template_name
+        if not source.is_file():
+            add_action(
+                summary,
+                Action(
+                    "BLOCK",
+                    "LICENSE",
+                    f"License template missing in standards repo: {template_name}",
+                ),
+            )
+            return
+        add_action(summary, Action("CREATE", "LICENSE", "From repo-standards LICENSE."))
+        return
+
+    visibility = summary.policy_visibility
+    if not visibility:
+        policy_text = summary.rendered_repo_policy
+        if policy_text:
+            visibility, _ = parse_policy_from_text(policy_text)
+    if lic in OPEN_SOURCE_LICENSES:
+        needed, _ = license_warning_needed(
+            visibility, license_value, has_license_file(repo)
+        )
+        if needed:
+            add_action(
+                summary,
+                Action(
+                    "WARN",
+                    "LICENSE",
+                    f".repo-policy.yml declares license {license_value} but LICENSE/LICENSE.md "
+                    "is missing. Add --add-license to create it intentionally or adjust "
+                    ".repo-policy.yml.",
+                ),
+            )
+        return
+    needed, message = license_warning_needed(
+        visibility, license_value, has_license_file(repo)
+    )
     if needed:
         add_action(summary, Action("WARN", "LICENSE", message))
 
@@ -1657,6 +1750,7 @@ def build_plan(
     policy_fields: PolicyFields,
     format_touched: bool,
     format_existing_docs: bool,
+    add_license: bool,
 ) -> MigrationSummary:
     detection = detect_repo(repo, standards)
     selected_profile = profile or detection["recommended_profile"]
@@ -1683,6 +1777,7 @@ def build_plan(
         will_run_rulesync=will_run_rulesync,
         format_touched=format_touched,
         format_existing_docs=format_existing_docs,
+        add_license=add_license,
     )
 
     summary.workflow_classifications = classify_all_workflows(repo)
@@ -1691,7 +1786,9 @@ def build_plan(
         summary, standards, repo, detection, selected_profile, force, policy_fields
     )
     plan_policy_source_warnings(summary)
-    plan_license_warning(summary, repo)
+    plan_license_file(
+        summary, repo, standards, add_license=add_license, force=force
+    )
 
     plan_file_copy(
         summary,
@@ -1809,6 +1906,7 @@ def build_analysis(
     profile: str | None,
     rules_strategy: str,
     policy_fields: PolicyFields | None = None,
+    add_license: bool = False,
 ) -> MigrationSummary:
     detection = detect_repo(repo, standards)
     selected_profile = profile or detection["recommended_profile"]
@@ -1838,7 +1936,10 @@ def build_analysis(
     plan_nvmrc(summary, standards, repo, language, force=False)
     plan_coverage_cleanup(summary, repo, cleanup=False)
     plan_agent_rule_migration(summary, repo, selected_rules, migrate=False)
-    plan_license_warning(summary, repo)
+    summary.add_license = add_license
+    plan_license_file(
+        summary, repo, standards, add_license=add_license, force=False
+    )
     plan_formatting_recommendations(summary, repo)
     preflight_generated_outputs(
         summary,
@@ -2000,6 +2101,12 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
                 text = read_text(target)
                 if text and not text.endswith("\n"):
                     target.write_text(text + "\n", encoding="utf-8")
+            continue
+
+        if action.path == "LICENSE":
+            license_source = standards / "LICENSE"
+            if license_source.is_file():
+                execute_create_or_update(license_source, None, target)
 
 
 def run_rulesync(repo: Path) -> tuple[bool, str]:
@@ -2090,6 +2197,7 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
         f"Formatting touched files: `{summary.format_touched}`",
         f"Formatting existing docs: `{summary.format_existing_docs}`",
         f"Formatting result: `{summary.formatting_result}`",
+        f"Add license: `{summary.add_license}`",
         "",
         "## Detection",
         "",
@@ -2255,6 +2363,7 @@ def summary_to_json(summary: MigrationSummary) -> dict[str, Any]:
         "format_existing_docs": summary.format_existing_docs,
         "formatting_result": summary.formatting_result,
         "touched_paths": summary.touched_paths,
+        "add_license": summary.add_license,
         "recommendations": summary.recommendations,
         "detection": summary.detection,
         "actions": [
@@ -2421,6 +2530,14 @@ def parse_args() -> argparse.Namespace:
         help="License for rendered .repo-policy.yml.",
     )
     parser.add_argument(
+        "--add-license",
+        action="store_true",
+        help=(
+            "Create a LICENSE file when --license is an explicitly supported "
+            "open-source license. Currently supports MIT."
+        ),
+    )
+    parser.add_argument(
         "--summary-file",
         type=Path,
         default=None,
@@ -2471,6 +2588,7 @@ def main() -> int:
             profile=args.profile,
             rules_strategy=args.rules_strategy,
             policy_fields=policy_fields,
+            add_license=args.add_license,
         )
         summary.adoption_level = args.adoption_level
         if args.dry_run_ai_summary:
@@ -2513,6 +2631,7 @@ def main() -> int:
         policy_fields=policy_fields,
         format_touched=args.format_touched,
         format_existing_docs=args.format_existing_docs,
+        add_license=args.add_license,
     )
     summary.apply_mode = apply_mode
     summary.interactive = args.interactive
@@ -2582,6 +2701,7 @@ def main() -> int:
             policy_fields=policy_fields,
             format_touched=args.format_touched,
             format_existing_docs=args.format_existing_docs,
+            add_license=args.add_license,
         )
         summary.apply_mode = apply_mode
         summary.interactive = True

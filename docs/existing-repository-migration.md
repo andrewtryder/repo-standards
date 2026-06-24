@@ -58,7 +58,7 @@ Use `--apply` to write safe changes. The script skips existing files by default,
 
 Use `--analyze-existing` to inspect generated AI/editor outputs, deploy workflows, and coverage artifacts before applying. Use `--adoption-level` (`baseline`, `checks`, `reusable-ci`, `full`) and `--rules-strategy profile` for safer migrations. Use `--interactive` for confirmation prompts. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply) and [`github-models-migration.md`](github-models-migration.md).
 
-The apply script adds `.editorconfig` when missing, warns (but does not create) a missing `LICENSE` when policy requires one, and copies migration-friendly `docs-check.yml` / `secret-scan.yml` workflows. For private repositories, pass `--visibility private --license proprietary` so generated `.repo-policy.yml` does not default to public MIT.
+The apply script adds `.editorconfig` when missing, warns (but does not create) a missing `LICENSE` when policy requires one, and copies migration-friendly `docs-check.yml` / `secret-scan.yml` workflows. For private repositories, pass `--visibility private --license proprietary` so generated `.repo-policy.yml` does not default to public MIT. For public MIT repos, pass `--add-license` to create `LICENSE` intentionally.
 
 ## Step 3: Run the assessor (baseline)
 
