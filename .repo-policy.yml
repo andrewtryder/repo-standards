@@ -1,0 +1,48 @@
+name: repo-standards
+profile: mixed-special
+visibility: public
+license: MIT
+governance:
+  contributing: required
+  pull_request_template: required
+package_manager: mixed
+node_version: "24"
+python_version: "3.12"
+
+commands:
+  install: python3 -m pip install -r requirements-docs.txt
+  install_dev: python3 -m pip install -r requirements-docs.txt pyyaml
+  format_check: echo "No formatter configured for repo-standards"
+  lint: |
+    python3 -m py_compile scripts/*.py
+    if compgen -G "scripts/legacy/*.py" > /dev/null; then
+      python3 -m py_compile scripts/legacy/*.py
+    fi
+  typecheck: ""
+  test: |
+    python3 scripts/detect_repo_standard.py --repo . --format markdown
+    python3 scripts/detect_repo_standard.py --repo . --format json
+  coverage: ""
+  build: mkdocs build --strict
+  docs: mkdocs build --strict
+
+quality_gates:
+  semantic_pr_title: required
+  ai_rules_sync: required
+  coverage: report-only
+  docs: required
+  ci: required
+
+release:
+  release_please: true
+  strategy: simple
+  production_branch: main
+
+deploy:
+  provider: github-pages
+  workflow: .github/workflows/docs-pages.yml
+
+migration_notes: >
+  This repository is the standards blueprint. It intentionally uses mixed-special
+  because it contains documentation, workflow templates, Python scripts, and
+  reusable configuration assets rather than a single application runtime.
