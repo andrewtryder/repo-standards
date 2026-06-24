@@ -218,17 +218,19 @@ jobs:
 
       - name: Apply script private proprietary add-license dry-run smoke test
         run: |
+          tmp=$(mktemp -d)
+          git -C "$tmp" init -q
           python3 scripts/apply_repo_standards.py \
-            --repo . \
+            --repo "$tmp" \
             --standards . \
-            --mode existing \
+            --mode new \
             --adoption-level baseline \
             --workflow-strategy none \
             --rules-strategy profile \
             --visibility private \
             --license proprietary \
             --add-license \
-            --dry-run | grep -q "BLOCK LICENSE"
+            --dry-run | grep -q "cannot be used with license proprietary"
 
       - name: Assessor smoke test
         run: |
