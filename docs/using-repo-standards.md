@@ -163,14 +163,121 @@ Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existin
 - **Docs check** (`docs-check.yml`) requires core standards files (`README.md`, `.repo-policy.yml`, `AGENTS.md`, `CONTRIBUTING.md`, PR template, `.gitignore`). `LICENSE`, `.editorconfig`, `.env.example`, and `SECURITY.md` are recommended warnings only. Open-source licenses declared in `.repo-policy.yml` trigger a warning when `LICENSE`/`LICENSE.md` is missing.
 - **README concepts** are warning-only unless the repo sets `DOCS_CHECK_STRICT=true` as a GitHub Actions variable.
 - **`.editorconfig`** is added by the apply script when missing.
-- **License** is never created automatically. The apply script warns when `.repo-policy.yml` declares an open-source license but no license file exists.
-- **`rulesync.jsonc`** is copied in Prettier-compatible format. For Node/TypeScript repos, the apply script best-effort runs `npx prettier --write rulesync.jsonc` after apply (use `--skip-format-generated` to disable).
+- **License** is never created automatically. The apply script warns when `.repo-policy.yml` declares an open-source license but no license file exists. Use `--add-license` to intentionally create a MIT `LICENSE` for new public repositories.
+- **`rulesync.jsonc`** is copied in Prettier-compatible format. Use `--format-touched` after apply to format migration-touched files, or `--format-existing-docs` when existing Markdown (such as `CHANGELOG.md`) fails Prettier checks.
+- **Visibility and license** default to `private`/`proprietary` for existing repos when not inferred. Override with `--visibility` and `--license`, or rely on existing `.repo-policy.yml` / GitHub metadata when available.
 
-If downstream formatting CI still fails, run:
+### Private repo migration
 
 ```bash
-npx prettier --write rulesync.jsonc
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --visibility private \
+  --license proprietary \
+  --apply
 ```
+
+### Public MIT new repository
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo "$TARGET_REPO" \
+  --standards "$REPO_STANDARDS" \
+  --mode new \
+  --adoption-level full \
+  --workflow-strategy reusable \
+  --rules-strategy profile \
+  --visibility public \
+  --license MIT \
+  --add-license \
+  --apply \
+  --format-touched \
+  --run-assessment
+```
+
+### Public MIT repo migration (existing)
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --visibility public \
+  --license MIT \
+  --add-license \
+  --apply
+```
+
+License files are never created automatically. Use `--add-license` when intentionally initializing a public MIT repository. Closed-source/private repositories should use `--visibility private --license proprietary` and should not use `--add-license`. Non-MIT open-source licenses should be added manually until templates exist.
+
+### Private/proprietary new repository
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo "$TARGET_REPO" \
+  --standards "$REPO_STANDARDS" \
+  --mode new \
+  --adoption-level full \
+  --workflow-strategy reusable \
+  --rules-strategy profile \
+  --visibility private \
+  --license proprietary \
+  --apply \
+  --format-touched \
+  --run-assessment
+```
+
+### Private repo migration (existing)
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --format-touched
+```
+
+### Formatting touched files
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --format-touched
+```
+
+### Formatting existing docs only when requested
+
+```bash
+python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
+  --repo . \
+  --standards "$REPO_STANDARDS" \
+  --mode existing \
+  --adoption-level full \
+  --workflow-strategy copied \
+  --rules-strategy profile \
+  --apply \
+  --format-existing-docs
+```
+
+Formatting existing docs can create unrelated diffs. It is useful when standards checks expose pre-existing Prettier debt, such as `CHANGELOG.md`. It is not enabled by default.
 
 ## New repository flow
 
