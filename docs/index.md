@@ -1,5 +1,7 @@
 # Repo Standards
 
+![Repo Standards logo](assets/brand/repo-standards-logo.svg)
+
 Repo Standards is a reusable standards system for GitHub repositories. It covers repository policy, AI-agent instructions, CI/CD, governance, security, dependency updates, release automation, deployment guidance, and migration assessment.
 
 **Current status:** pre-1.0. The formal v1.0 release target is the first stable, wizard-first, modular Repo Standards release.
