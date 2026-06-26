@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/andrewtryder/repo-standards/compare/v1.1.0...v1.2.0) (2026-06-26)
+
+
+### Features
+
+* **standards:** add file-type code quality standards ([03eb56d](https://github.com/andrewtryder/repo-standards/commit/03eb56ddddfc7892a4f630d13bf78e5b2d8f436b))
+
 ## [1.1.0](https://github.com/andrewtryder/repo-standards/compare/v1.0.0...v1.1.0) (2026-06-24)
 
 
