@@ -112,11 +112,13 @@ Live callable workflows:
 
 - `.github/workflows/node-ci.reusable.yml` — reusable Node CI workflow
 - `.github/workflows/python-ci.reusable.yml` — reusable Python CI workflow
+- `.github/workflows/code-quality.reusable.yml` — optional file-pattern analyzer
 
 Template copies (for early migration or reference):
 
 - `templates/workflows/node-ci.reusable.yml`
 - `templates/workflows/python-ci.reusable.yml`
+- `templates/workflows/code-quality.reusable.yml`
 
 ## Summary
 

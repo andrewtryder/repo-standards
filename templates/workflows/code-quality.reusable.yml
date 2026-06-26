@@ -1,0 +1,143 @@
+# Template copy only.
+# The live reusable workflow callable by downstream repositories is:
+# .github/workflows/code-quality.reusable.yml
+name: Code Quality (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      strict:
+        description: "Treat missing expected tooling as failures"
+        required: false
+        type: boolean
+        default: false
+      run_tools:
+        description: "Run installed safe local check tools"
+        required: false
+        type: boolean
+        default: false
+      fail_on_missing_tools:
+        description: "Alias for strict missing-tool behavior"
+        required: false
+        type: boolean
+        default: false
+      python_enabled:
+        description: "Enable Python file-pattern checks"
+        required: false
+        type: boolean
+        default: true
+      shell_enabled:
+        description: "Enable shell file-pattern checks"
+        required: false
+        type: boolean
+        default: true
+      yaml_enabled:
+        description: "Enable YAML file-pattern checks"
+        required: false
+        type: boolean
+        default: true
+      markdown_enabled:
+        description: "Enable Markdown file-pattern checks"
+        required: false
+        type: boolean
+        default: true
+      docker_enabled:
+        description: "Enable Dockerfile checks"
+        required: false
+        type: boolean
+        default: true
+      make_enabled:
+        description: "Enable Makefile checks"
+        required: false
+        type: boolean
+        default: true
+      python_lint_command:
+        description: "Repo-specific Python lint command"
+        required: false
+        type: string
+        default: ""
+      shell_lint_command:
+        description: "Repo-specific shell lint command"
+        required: false
+        type: string
+        default: ""
+      yaml_lint_command:
+        description: "Repo-specific YAML lint command"
+        required: false
+        type: string
+        default: ""
+      markdown_check_command:
+        description: "Repo-specific Markdown check command"
+        required: false
+        type: string
+        default: ""
+      docker_lint_command:
+        description: "Repo-specific Docker lint command"
+        required: false
+        type: string
+        default: ""
+      make_lint_command:
+        description: "Repo-specific Make lint command"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ github.action_repository }}
+          ref: ${{ github.action_ref }}
+          path: .repo-standards
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Check file-pattern code quality standards
+        env:
+          STRICT_INPUT: ${{ inputs.strict || inputs.fail_on_missing_tools }}
+          RUN_TOOLS_INPUT: ${{ inputs.run_tools }}
+          PYTHON_ENABLED: ${{ inputs.python_enabled }}
+          SHELL_ENABLED: ${{ inputs.shell_enabled }}
+          YAML_ENABLED: ${{ inputs.yaml_enabled }}
+          MARKDOWN_ENABLED: ${{ inputs.markdown_enabled }}
+          DOCKER_ENABLED: ${{ inputs.docker_enabled }}
+          MAKE_ENABLED: ${{ inputs.make_enabled }}
+          PYTHON_LINT_COMMAND: ${{ inputs.python_lint_command }}
+          SHELL_LINT_COMMAND: ${{ inputs.shell_lint_command }}
+          YAML_LINT_COMMAND: ${{ inputs.yaml_lint_command }}
+          MARKDOWN_CHECK_COMMAND: ${{ inputs.markdown_check_command }}
+          DOCKER_LINT_COMMAND: ${{ inputs.docker_lint_command }}
+          MAKE_LINT_COMMAND: ${{ inputs.make_lint_command }}
+        run: |
+          args=(--repo . --format markdown)
+          if [ "$STRICT_INPUT" = "true" ]; then
+            args+=(--strict)
+          fi
+          if [ "$RUN_TOOLS_INPUT" = "true" ]; then
+            args+=(--run-tools)
+          fi
+          areas=()
+          [ "$PYTHON_ENABLED" = "true" ] && areas+=(python)
+          areas+=(javascript github_actions data)
+          [ "$SHELL_ENABLED" = "true" ] && areas+=(shell)
+          [ "$YAML_ENABLED" = "true" ] && areas+=(yaml)
+          [ "$MARKDOWN_ENABLED" = "true" ] && areas+=(markdown)
+          [ "$DOCKER_ENABLED" = "true" ] && areas+=(docker)
+          [ "$MAKE_ENABLED" = "true" ] && areas+=(make)
+          args+=(--areas "$(IFS=,; echo "${areas[*]}")")
+          [ -n "$PYTHON_LINT_COMMAND" ] && args+=(--python-lint-command "$PYTHON_LINT_COMMAND")
+          [ -n "$SHELL_LINT_COMMAND" ] && args+=(--shell-lint-command "$SHELL_LINT_COMMAND")
+          [ -n "$YAML_LINT_COMMAND" ] && args+=(--yaml-lint-command "$YAML_LINT_COMMAND")
+          [ -n "$MARKDOWN_CHECK_COMMAND" ] && args+=(--markdown-check-command "$MARKDOWN_CHECK_COMMAND")
+          [ -n "$DOCKER_LINT_COMMAND" ] && args+=(--docker-lint-command "$DOCKER_LINT_COMMAND")
+          [ -n "$MAKE_LINT_COMMAND" ] && args+=(--make-lint-command "$MAKE_LINT_COMMAND")
+          python3 .repo-standards/scripts/check_code_quality_standards.py "${args[@]}"

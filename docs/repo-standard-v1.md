@@ -163,6 +163,15 @@ docs
 
 A gate may be explicitly disabled in `.repo-policy.yml` only when it is not applicable.
 
+File and language checks are governed by the unified
+[`code-quality-standards.md`](code-quality-standards.md) model:
+
+- Repo profile determines which standards apply.
+- File patterns determine which tools/checks run.
+- CI remains authoritative.
+- Pre-commit is optional local feedback.
+- Existing repos should adopt newly introduced checks as warnings/report-only first.
+
 ### Node version management
 
 Node/TypeScript repositories **must have a root `.nvmrc` file** specifying the project's Node.js version (e.g., `24`).
@@ -190,6 +199,16 @@ When writing CI workflows, prefer using `workflow_call` with inputs so that runt
 | `test_command` | `"npm test"` or `"pytest"` | Run tests |
 | `coverage_command` | `"npm run test:coverage"` or coverage run | Coverage report |
 | `build_command` | `"npm run build"` or `""` | Build step |
+| `strict` | `false` | Optional file-pattern quality checks may fail on missing tooling |
+| `run_tools` | `false` | Optional file-pattern quality checks may run installed safe tools |
+| `fail_on_missing_tools` | `false` | Alias for strict missing-tool behavior in file-pattern checks |
+| `*_enabled` | `true` | Optional file-area toggles for Python, shell, YAML, Markdown, Docker, and Make checks |
+| `*_lint_command` / `markdown_check_command` | `""` | Optional repo-specific file-area check commands |
+
+Reusable workflows that support both `workflow_call` and direct `push`/`pull_request`
+triggers must explicitly handle empty `inputs.*` values. Do not assume input defaults are
+available during direct-triggered runs. Workflows that are `workflow_call` only may rely on
+their declared input defaults.
 
 ### Reusable workflows (long-term preferred)
 
@@ -210,11 +229,13 @@ Live callable workflows:
 
 - `.github/workflows/node-ci.reusable.yml`
 - `.github/workflows/python-ci.reusable.yml`
+- `.github/workflows/code-quality.reusable.yml` (optional file-pattern analyzer)
 
 Template copies:
 
 - `templates/workflows/node-ci.reusable.yml`
 - `templates/workflows/python-ci.reusable.yml`
+- `templates/workflows/code-quality.reusable.yml`
 
 ## 5. Coverage policy
 

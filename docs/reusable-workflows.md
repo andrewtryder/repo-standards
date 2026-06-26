@@ -6,6 +6,7 @@ Live reusable workflows in this repository:
 
 - `.github/workflows/node-ci.reusable.yml`
 - `.github/workflows/python-ci.reusable.yml`
+- `.github/workflows/code-quality.reusable.yml` (optional)
 
 Stable consumers should pin to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
 
@@ -78,6 +79,41 @@ jobs:
       coverage_args: "--report-only"
 ```
 
+## Optional file-pattern code quality caller
+
+This workflow runs the read-only file-pattern analyzer from repo-standards. Keep it advisory
+during existing-repo migration, then enable `strict` or `run_tools` when the repo is ready.
+
+```yaml
+# .github/workflows/code-quality.yml
+name: Code quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality:
+    uses: andrewtryder/repo-standards/.github/workflows/code-quality.reusable.yml@v1.3.0
+    with:
+      strict: false
+      run_tools: false
+      python_enabled: true
+      shell_enabled: true
+      yaml_enabled: true
+      markdown_enabled: true
+      docker_enabled: true
+      make_enabled: true
+```
+
+Optional command inputs include `python_lint_command`, `shell_lint_command`,
+`yaml_lint_command`, `markdown_check_command`, `docker_lint_command`, and
+`make_lint_command`. Use check-only commands.
+
 ## Workflow locations
 
 | Path | Purpose |
@@ -89,6 +125,7 @@ Template copies (for early migration or reference):
 
 - `templates/workflows/node-ci.reusable.yml`
 - `templates/workflows/python-ci.reusable.yml`
+- `templates/workflows/code-quality.reusable.yml`
 
 ## Comparison
 

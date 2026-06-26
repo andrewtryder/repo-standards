@@ -54,15 +54,15 @@ jobs:
   node-ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: ${{ inputs.node_version != '' }}
         with:
           node-version: ${{ inputs.node_version }}
           cache: npm
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: ${{ inputs.node_version == '' }}
         with:
           node-version-file: .nvmrc
