@@ -1,11 +1,11 @@
-# Documentation overhaul plan
+# Documentation overhaul status
 
-This plan tracks the documentation architecture changes needed before the formal v1.0 Repo Standards release.
+This page records the documentation architecture work that shaped the V1.0 Repo Standards release.
 
 ## Goals
 
 - Make Repo Standards wizard-first.
-- Reposition the project as pre-1.0 until the TUI workflow is stable.
+- Keep the project consistently described as V1.0.
 - Make the modular standard model explicit.
 - Document AI-agent standardization as a user-facing concept.
 - Document governance and license questions.
@@ -16,16 +16,15 @@ This plan tracks the documentation architecture changes needed before the formal
 1. The maintainer standardizing a portfolio of repositories.
 2. Other developers adopting, contributing to, or extending Repo Standards.
 
-## Current issues
+## Historical issues addressed
 
-- The docs contain useful content but lack a clear reader journey.
-- The README and docs homepage are too small to guide new users.
-- `Repo Standard v1.3` language implies more stability than the current direction intends.
-- Profiles are documented, but modules are not yet first-class in the docs.
-- AI-agent standardization is mostly covered as maintenance guidance instead of adoption guidance.
-- Firebase is not yet a first-class documented repo type.
-- Contributor docs are accurate but too thin for outside contributors.
-- GitHub Models migration appears in more than one navigation section.
+- The docs contained useful content but lacked a clear reader journey.
+- The README and docs homepage were too small to guide new users.
+- Version language was inconsistent across documents.
+- Profiles were documented before modules became first-class in the docs.
+- AI-agent standardization was mostly covered as maintenance guidance instead of adoption guidance.
+- Firebase was not yet a first-class documented repo type.
+- Contributor docs needed more maintainer workflow context.
 
 ## Proposed documentation architecture
 
@@ -68,9 +67,9 @@ This plan tracks the documentation architecture changes needed before the formal
 - Reference
   - Standard reference
 
-## Initial implementation
+## V1.0 implementation
 
-This PR should:
+V1.0 includes:
 
 - update the README
 - update the docs homepage

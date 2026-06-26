@@ -2,7 +2,7 @@
 """
 assess_repo_standards_migration.py
 
-Assess one repository against Repo Standards v1 (superseded by v3).
+Assess one repository against Repo Standards V1.0 using the legacy migration assessor.
 
 Example:
   python3 /path/to/repo-standards/scripts/assess_repo_standards_migration.py \

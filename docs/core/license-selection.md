@@ -41,7 +41,7 @@ If unsure, choose manual review.
 
 ## Wizard behavior
 
-The wizard should ask:
+The wizard asks:
 
 ```text
 Which license should this repository use?
@@ -63,7 +63,7 @@ none / unlicensed
 other / manual review
 ```
 
-The wizard should not change license terms without explicit user selection.
+The wizard does not change license terms without explicit user selection.
 
 ## Public repositories
 

@@ -466,7 +466,7 @@ Live reusable workflows are:
 - `.github/workflows/python-ci.reusable.yml`
 - `.github/workflows/code-quality.reusable.yml` (optional)
 
-Stable consumers should pin to a release tag such as `@v1.3.0`.
+Stable consumers should pin to a release tag such as `@v1.0.0`.
 
 Use `@main` only for canary repos that intentionally track unreleased changes.
 
@@ -485,7 +485,7 @@ permissions:
 
 jobs:
   node-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.0.0
     with:
       node_version: "24"
       install_command: "npm ci"
@@ -512,7 +512,7 @@ permissions:
 
 jobs:
   python-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.0.0
     with:
       python_version: "3.12"
       install_command: "python -m pip install -r requirements.txt -r requirements-dev.txt"
@@ -537,7 +537,7 @@ permissions:
 
 jobs:
   code-quality:
-    uses: andrewtryder/repo-standards/.github/workflows/code-quality.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/code-quality.reusable.yml@v1.0.0
     with:
       strict: false
       run_tools: false

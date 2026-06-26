@@ -20,7 +20,11 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from detect_repo_standard import PROFILE_POLICY_TEMPLATES, detect_repo  # noqa: E402
+from detect_repo_standard import (  # noqa: E402
+    PROFILE_POLICY_TEMPLATES,
+    detect_repo,
+    recommended_templates,
+)
 
 ActionType = Literal["CREATE", "UPDATE", "SKIP", "MERGE", "WARN", "BLOCK"]
 
@@ -73,7 +77,7 @@ permissions:
 
 jobs:
   node-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.0.0
     with:
       node_version: "24"
       install_command: "npm ci"
@@ -97,7 +101,7 @@ permissions:
 
 jobs:
   python-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.0.0
     with:
       python_version: "3.12"
       install_command: "python -m pip install -r requirements.txt -r requirements-dev.txt"
@@ -106,6 +110,43 @@ jobs:
       test_command: "coverage run -m pytest"
       coverage_args: "--report-only"
 """
+
+PYTHON_HOME_ASSISTANT_CI_WORKFLOW = """name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python-ci:
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.0.0
+    with:
+      python_version: "3.12"
+      install_command: "python -m pip install -r requirements.txt -r requirements_test.txt"
+      format_check_command: "ruff format --check ."
+      lint_command: "ruff check ."
+      test_command: "coverage run -m pytest"
+      coverage_args: "--report-only"
+"""
+
+
+def reusable_ci_workflow_for(repo: Path, detection: dict[str, Any]) -> str | None:
+    """Return the reusable CI caller content for supported detected languages."""
+    language = detection.get("language")
+    if language == "typescript":
+        return NODE_CI_WORKFLOW
+    if language == "python":
+        if (
+            detection.get("recommended_profile") == "python-home-assistant"
+            and (repo / "requirements_test.txt").is_file()
+        ):
+            return PYTHON_HOME_ASSISTANT_CI_WORKFLOW
+        return PYTHON_CI_WORKFLOW
+    return None
 
 STANDARDS_OWNED_WORKFLOW_NAMES = {
     "semantic-pull-request.yml",
@@ -250,6 +291,35 @@ def add_action(summary: "MigrationSummary", action: Action) -> None:
     elif action.action == "SKIP" and has_primary_action(summary, action.path):
         return
     summary.actions.append(action)
+
+
+def is_home_assistant_repo(repo: Path) -> bool:
+    return any(path.is_file() for path in repo.glob("custom_components/*/manifest.json"))
+
+
+def has_firebase_repo(repo: Path, detection: dict[str, Any]) -> bool:
+    if detection.get("deployment_provider") == "firebase":
+        return True
+    if (repo / "firebase.json").is_file() or (repo / ".firebaserc").is_file():
+        return True
+    workflows = repo / ".github" / "workflows"
+    if not workflows.is_dir():
+        return False
+    for path in list(workflows.glob("*.yml")) + list(workflows.glob("*.yaml")):
+        text = path.read_text(encoding="utf-8", errors="ignore").lower()
+        if "firebase" in text:
+            return True
+    return False
+
+
+def normalize_detection(repo: Path, detection: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(detection)
+    if is_home_assistant_repo(repo):
+        normalized["recommended_profile"] = "python-home-assistant"
+        normalized["recommended_templates"] = recommended_templates("python-home-assistant")
+    if has_firebase_repo(repo, normalized):
+        normalized["deployment_provider"] = "firebase"
+    return normalized
 
 
 @dataclass
@@ -831,11 +901,9 @@ def plan_check_workflow_replacement(
         if has_primary_action(summary, target_rel):
             continue
         if replace_check_workflows:
-            ci_content = (
-                NODE_CI_WORKFLOW
-                if language == "typescript"
-                else PYTHON_CI_WORKFLOW
-            )
+            ci_content = reusable_ci_workflow_for(repo, summary.detection)
+            if ci_content is None:
+                continue
             plan_inline_file(
                 summary,
                 rel_path=target_rel,
@@ -1647,7 +1715,7 @@ def plan_workflows(
 
     ci_rel = ".github/workflows/ci.yml"
     ci_target = repo / ci_rel
-    ci_content = NODE_CI_WORKFLOW if language == "typescript" else PYTHON_CI_WORKFLOW
+    ci_content = reusable_ci_workflow_for(repo, summary.detection)
     if language not in {"typescript", "python"}:
         summary.actions.append(
             Action(
@@ -1656,6 +1724,8 @@ def plan_workflows(
                 "Cannot auto-generate reusable CI for this language.",
             )
         )
+        return
+    if ci_content is None:
         return
 
     plan_inline_file(
@@ -1752,7 +1822,7 @@ def build_plan(
     format_existing_docs: bool,
     add_license: bool,
 ) -> MigrationSummary:
-    detection = detect_repo(repo, standards)
+    detection = normalize_detection(repo, detect_repo(repo, standards))
     selected_profile = profile or detection["recommended_profile"]
     language = detection["language"]
     selected_rules = selected_rule_files(
@@ -1908,7 +1978,7 @@ def build_analysis(
     policy_fields: PolicyFields | None = None,
     add_license: bool = False,
 ) -> MigrationSummary:
-    detection = detect_repo(repo, standards)
+    detection = normalize_detection(repo, detect_repo(repo, standards))
     selected_profile = profile or detection["recommended_profile"]
     language = detection["language"]
     selected_rules = selected_rule_files(
@@ -2050,10 +2120,7 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
 
     ci_content: str | None = None
     if summary.workflow_strategy == "reusable":
-        if summary.detection["language"] == "typescript":
-            ci_content = NODE_CI_WORKFLOW
-        elif summary.detection["language"] == "python":
-            ci_content = PYTHON_CI_WORKFLOW
+        ci_content = reusable_ci_workflow_for(repo, summary.detection)
 
     for action in summary.actions:
         if action.action not in {"CREATE", "UPDATE", "MERGE"}:

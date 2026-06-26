@@ -1,0 +1,12 @@
+{
+  "domain": "demo_sensor",
+  "name": "Demo Sensor",
+  "codeowners": ["@fixture"],
+  "config_flow": false,
+  "documentation": "https://example.com",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://example.com/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

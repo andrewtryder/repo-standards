@@ -1,0 +1,40 @@
+name: Fixture Harness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/**"
+      - "scripts/repo_standards_agent.py"
+      - "scripts/detect_repo_standard.py"
+      - "scripts/apply_repo_standards.py"
+      - "scripts/assess_repo_standards.py"
+      - "profiles/**"
+      - "templates/**"
+      - "ai/rules/**"
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-harness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install harness dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: Run fixture harness
+        run: python3 tests/harness/run_fixtures.py --standards .

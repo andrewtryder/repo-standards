@@ -1,0 +1,1 @@
+# Runtime dependencies (none for this minimal fixture)

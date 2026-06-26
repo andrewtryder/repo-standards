@@ -4,15 +4,15 @@
 
 Repo Standards is a reusable standards system for GitHub repositories. It covers repository policy, AI-agent instructions, CI/CD, governance, security, dependency updates, release automation, deployment guidance, and migration assessment.
 
-**Current status:** pre-1.0. The formal v1.0 release target is the first stable, wizard-first, modular Repo Standards release.
+**Current status:** V1.0. The current V1.0 release is the first stable, wizard-first, modular Repo Standards release.
 
 ## Start here
 
 | If you want to... | Read this |
 |---|---|
-| Understand the v1.0 direction | [Roadmap](roadmap.md) |
+| Understand the V1.0 baseline | [Roadmap](roadmap.md) |
 | Understand versioning | [Versioning](versioning.md) |
-| Use the planned wizard-first flow | [Wizard-first adoption](getting-started/wizard.md) |
+| Use the wizard-first flow | [Wizard-first adoption](getting-started/wizard.md) |
 | Migrate an existing repo with today's CLI | [Existing repository migration](existing-repository-migration.md) |
 | Set up a new repo with today's CLI/manual steps | [New repository setup](new-repository-setup.md) |
 | Understand the modular model | [Modular standards](core/modular-standards.md) |
@@ -24,7 +24,7 @@ Repo Standards is a reusable standards system for GitHub repositories. It covers
 
 Repo Standards is built first for a maintainer standardizing a set of repositories, then for other developers who want to adopt, contribute to, or extend the standard.
 
-The planned v1.0 user experience is:
+The V1.0 user experience is:
 
 1. Launch the Textual migration wizard.
 2. Answer governance and license questions.
@@ -35,7 +35,7 @@ The planned v1.0 user experience is:
 7. Run assessment.
 8. Open a focused standards PR.
 
-Until the wizard is implemented, the current CLI tools remain the supported path.
+The CLI tools remain supported for scripted adoption and troubleshooting.
 
 ## What Repo Standards manages
 

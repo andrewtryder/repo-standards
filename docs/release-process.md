@@ -7,7 +7,7 @@ Release Please owns:
 - release PRs
 - `CHANGELOG.md`
 - GitHub releases
-- version tags such as `v1.3.0`
+- version tags such as `v1.0.0`
 
 Normal release flow:
 

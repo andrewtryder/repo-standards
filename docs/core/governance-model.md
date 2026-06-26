@@ -1,6 +1,6 @@
 # Governance model
 
-Repo Standards makes repository governance explicit. The wizard should ask governance questions before creating or modifying policy files.
+Repo Standards makes repository governance explicit. The wizard asks governance questions before creating or modifying policy files.
 
 ## Core questions
 
@@ -86,4 +86,4 @@ governance:
 
 ## Migration summary
 
-The wizard should also write governance choices into `.repo-standards-migration-summary.md` so reviewers can see which choices were made and why.
+The wizard also writes governance choices into `.repo-standards-migration-summary.md` so reviewers can see which choices were made and why.

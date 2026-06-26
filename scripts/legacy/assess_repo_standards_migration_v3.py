@@ -2,7 +2,7 @@
 """
 assess_repo_standards_migration_v3.py
 
-Post-migration assessment for a single repository adopting Repo Standards v1.3.
+Post-migration assessment for a single repository adopting Repo Standards V1.0.
 
 Based on pilot findings from nab-api:
 - Coverage A/M is a blocker; D is acceptable cleanup (with .gitignore check).

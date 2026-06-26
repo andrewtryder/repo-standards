@@ -29,7 +29,7 @@ AGENTS.md
 
 ## Migration stance
 
-During migration, the wizard should detect:
+During migration, the wizard detects:
 
 ```text
 AGENTS.md
@@ -40,7 +40,7 @@ CLAUDE.md
 .antigravity/
 ```
 
-These files and directories may contain old or generated AI/editor instructions. The wizard should offer to replace them with fresh Rulesync output.
+These files and directories may contain old or generated AI/editor instructions. The wizard offers to replace them with fresh Rulesync output.
 
 Because this is destructive, the wizard must require explicit confirmation before deleting or replacing them.
 

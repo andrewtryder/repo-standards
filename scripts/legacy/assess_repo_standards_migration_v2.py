@@ -2,9 +2,9 @@
 """
 assess_repo_standards_migration_v2.py
 
-Stricter post-migration assessment for a single repository adopting Repo Standards v1 (superseded by v3).
+Stricter post-migration assessment for a single repository adopting Repo Standards V1.0.
 
-Adds checks that v1 missed:
+Adds checks that the first legacy assessor missed:
 - Generated coverage artifacts in the diff.
 - Agent memory files in the diff.
 - Suspicious non-dot `agents/` directory.

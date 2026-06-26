@@ -1,4 +1,4 @@
-# Repo Standard v1.3
+# Repo Standard V1.0
 
 ## 1. Commit and PR policy
 
@@ -216,7 +216,7 @@ The preferred long-term CI standard is **GitHub reusable workflows** defined in 
 
 See `docs/template-drift.md` for details and caller examples.
 
-Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
+Stable consumers should pin reusable workflows to a release tag such as `@v1.0.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
 
 Reusable workflow locations:
 
