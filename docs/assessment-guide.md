@@ -12,6 +12,15 @@ See [`detection.md`](detection.md) for detection vs assessment differences.
 
 For automated standards adoption, use `scripts/apply_repo_standards.py` with adoption levels, workflow classification, and optional interactive confirmation. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply).
 
+For file-pattern-aware code quality coverage, use the read-only analyzer:
+
+```bash
+python3 /path/to/repo-standards/scripts/check_code_quality_standards.py --repo /path/to/repo --format markdown
+```
+
+The assessor includes analyzer warnings in read-only mode. Missing newly introduced optional
+tooling remains warning-only unless the analyzer is run with `--strict`.
+
 Optional GitHub Models migration assessment is advisory only — see [`github-models-migration.md`](github-models-migration.md).
 
 Migrated repos use migration-friendly docs-check defaults: core files are required; `LICENSE`, `.editorconfig`, and README concept gaps are warnings unless `DOCS_CHECK_STRICT=true`. The apply script adds `.editorconfig` but does not auto-create licenses unless `--add-license` is passed (MIT only). Private/proprietary repos should not receive missing-license warnings when policy declares `visibility: private` and `license: proprietary`.
@@ -126,6 +135,7 @@ Warnings indicate technical debt or recommended improvements that don't block th
 - Missing `.nvmrc` in a Node repo
 - Missing `.github/dependabot.yml`
 - Missing secret scanning workflow
+- Missing optional file-pattern tooling for files present in the repo
 
 ## When to run the assessor
 

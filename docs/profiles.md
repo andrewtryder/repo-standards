@@ -3,6 +3,7 @@
 A **profile** is a named starting point for `.repo-policy.yml`. It encodes typical language/runtime, deploy assumptions, default commands, and quality gates.
 
 For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
+For file-pattern-aware tooling defaults, see [`code-quality-standards.md`](code-quality-standards.md).
 
 ## Available profiles
 
@@ -50,6 +51,10 @@ For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenan
 - **Monorepo, multi-language, or unusual setup?** → `mixed-special`
 
 `mixed-special` repos should migrate conservatively — start with non-invasive workflows and governance files, then adopt CI quality gates incrementally.
+
+Profiles determine applicability; file patterns determine which language and format checks run.
+For example, a mixed repo may use one profile while still running ShellCheck only when shell files
+exist and actionlint only when GitHub Actions workflows exist.
 
 ## Detection vs adoption
 

@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from check_code_quality_standards import analyze_repo as analyze_code_quality
+
 
 COVERAGE_ARTIFACT_RE = re.compile(
     r"^(coverage|\.coverage|htmlcov|\.nyc_output|\.vitest-coverage|dist/.*\.test\.js|dist/.*\.test\.map)(/|$)",
@@ -541,6 +543,7 @@ def score_report(
     changed = state["changed"]
     gi = state["gitignore"]
     gov = state["governance"]
+    code_quality = state.get("code_quality", {})
     has_coverage_in_gitignore = gi["has_coverage"]
 
     # Required files and workflows
@@ -679,6 +682,10 @@ def score_report(
         warnings.append("README does not mention AI/editor instructions")
 
     # Technical debt: warnings only
+    for finding in code_quality.get("findings", []):
+        if finding.get("status") in {"WARN", "FAIL"}:
+            warnings.append(f"Code quality standards: {finding.get('message')}")
+
     if command_analysis["eslint_warnings"]:
         warnings.append(
             f"ESLint passed but reported {command_analysis['eslint_warnings']} warnings "
@@ -844,6 +851,7 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
             "policy_visibility": policy_visibility,
             "policy_license": policy_license,
         },
+        "code_quality": analyze_code_quality(repo, strict=False, run_tools=False),
         "changed": {
             "files": files,
             "generated_artifacts": all_coverage_paths,

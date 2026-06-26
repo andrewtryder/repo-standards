@@ -133,6 +133,7 @@ Documentation site: <https://andrewtryder.github.io/repo-standards/>
 | Detection | [`docs/detection.md`](docs/detection.md) |
 | Assessment | [`docs/assessment-guide.md`](docs/assessment-guide.md) |
 | Standard reference | [`docs/repo-standard-v1.md`](docs/repo-standard-v1.md) |
+| Code quality standards | [`docs/code-quality-standards.md`](docs/code-quality-standards.md) |
 
 ## Contributing
 

@@ -21,10 +21,13 @@ Preferred checks:
 - `npm run build`
 
 Use ESLint for linting, TypeScript for typechecking, and Prettier for formatting when configured.
+File patterns determine execution: TypeScript/JavaScript checks apply to `*.ts`, `*.tsx`,
+`*.js`, `*.jsx`, `*.mjs`, and `*.cjs` files when those files exist.
 
 ## Related docs
 
 - `docs/profiles.md`
+- `docs/code-quality-standards.md`
 - `docs/ai-rules-maintenance.md`
 - `docs/detection.md`
 - `docs/deployment/cloudflare.md`

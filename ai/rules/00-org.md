@@ -25,6 +25,8 @@ Inspect existing patterns before adding new abstractions.
 ## Before finishing
 
 Run the checks listed in `.repo-policy.yml`.
+When file-pattern-specific standards are relevant, use the repository's configured tooling and
+`scripts/check_code_quality_standards.py` from repo-standards for read-only advisory checks.
 
 ## CI/CD safety
 
@@ -53,6 +55,7 @@ Check `.repo-policy.yml` for the `visibility` and `license` fields to determine 
 - `docs/concepts.md`
 - `docs/ai-rules-maintenance.md`
 - `docs/profiles.md`
+- `docs/code-quality-standards.md`
 - `docs/detection.md`
 - `docs/branch-protection.md`
 - `docs/template-drift.md`

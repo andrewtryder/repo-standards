@@ -69,6 +69,7 @@ nav:
       - GitHub Models detection: github-models-detection.md
   - Specification and automation:
       - Standard reference: repo-standard-v1.md
+      - Code quality standards: code-quality-standards.md
       - Branch protection: branch-protection.md
       - Template drift: template-drift.md
       - Reusable workflows: reusable-workflows.md

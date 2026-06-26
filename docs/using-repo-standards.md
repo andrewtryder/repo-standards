@@ -44,6 +44,14 @@ Run detection:
 python3 "$REPO_STANDARDS/scripts/detect_repo_standard.py" --repo . --format markdown
 ```
 
+Check file-pattern code quality coverage:
+
+```bash
+python3 "$REPO_STANDARDS/scripts/check_code_quality_standards.py" \
+  --repo . \
+  --format markdown
+```
+
 Generate a baseline assessment:
 
 ```bash
@@ -456,6 +464,7 @@ Live reusable workflows are:
 
 - `.github/workflows/node-ci.reusable.yml`
 - `.github/workflows/python-ci.reusable.yml`
+- `.github/workflows/code-quality.reusable.yml` (optional)
 
 Stable consumers should pin to a release tag such as `@v1.3.0`.
 
@@ -512,6 +521,32 @@ jobs:
       test_command: "coverage run -m pytest"
       coverage_args: "--report-only"
 ```
+
+Optional code-quality caller example:
+
+```yaml
+name: Code quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality:
+    uses: andrewtryder/repo-standards/.github/workflows/code-quality.reusable.yml@v1.3.0
+    with:
+      strict: false
+      run_tools: false
+      shell_enabled: true
+      yaml_enabled: true
+      markdown_enabled: true
+```
+
+Use `strict: true` or `run_tools: true` only after the repo intentionally adopts those checks.
 
 Use copied workflows when:
 
