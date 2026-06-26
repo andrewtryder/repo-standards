@@ -50,6 +50,20 @@ python3 scripts/apply_repo_standards.py \
   --dry-run
 ```
 
+## Local checks
+
+Run the same core checks used by the standards repo CI:
+
+```bash
+python3 -m compileall scripts
+python3 scripts/detect_repo_standard.py --repo . --format markdown
+python3 scripts/detect_repo_standard.py --repo . --format json
+python3 scripts/check_code_quality_standards.py --repo . --format markdown
+python3 scripts/assess_repo_standards.py --repo . --standards . --output-dir /tmp/repo-standards-assessment
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main
+npx rulesync generate
+```
+
 ## Core model
 
 Repo Standards is moving toward a modular composition model:

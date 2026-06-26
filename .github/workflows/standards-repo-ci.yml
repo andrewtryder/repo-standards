@@ -91,6 +91,13 @@ jobs:
       - name: Verify required standards files
         run: |
           test -f README.md
+          test -f .repo-policy.yml
+          test -f rulesync.jsonc
+          test -f AGENTS.md
+          test -d .rulesync/rules
+          test -d .cursor/rules
+          test -d .agents/rules
+          test -d .agents/memories
           test -f docs/repo-standard-v1.md
           test -f docs/concepts.md
           test -f docs/ai-rules-maintenance.md
@@ -121,6 +128,8 @@ jobs:
           test -f .github/workflows/node-ci.reusable.yml
           test -f .github/workflows/python-ci.reusable.yml
           test -f .github/workflows/code-quality.reusable.yml
+          test -f .github/workflows/ai-rules-check.yml
+          test -f .github/workflows/semantic-pull-request.yml
           test -f assessments/README.md
           test -d assessments/examples
           test -d assessments/generated

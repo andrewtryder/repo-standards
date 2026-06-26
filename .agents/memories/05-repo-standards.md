@@ -1,0 +1,55 @@
+# Repo-standards Blueprint Rules
+
+This repository is a standards blueprint, not an application repository.
+
+It defines reusable standards for GitHub repositories, including CI/CD, documentation,
+governance, AI/editor rules, release automation, deployment guidance, detection, and
+assessment tooling.
+
+## Source-of-truth model
+
+Human-facing guidance lives in:
+
+- `README.md`
+- `docs/`
+
+Reusable AI/editor rule templates live in:
+
+- `ai/rules/*.md`
+
+This repository also dogfoods downstream-style AI/editor source in:
+
+- `.rulesync/rules/*.md`
+
+Generated AI/editor outputs are:
+
+- `AGENTS.md`
+- `.cursor/rules/*.mdc`
+- `.agents/rules/*.md`
+- `.agents/memories/*.md`
+
+Do not hand-edit generated outputs as the source of truth.
+
+## How to make standards changes
+
+When changing the standard:
+
+1. Update human docs when behavior or usage changes.
+2. Update `ai/rules/*.md` when reusable agent/editor behavior changes.
+3. Sync matching reusable rules into `.rulesync/rules/*.md`.
+4. Update local `.rulesync/rules/*.md` when this repo's own agent/editor behavior changes.
+5. Update templates when downstream files should change.
+6. Update detection rules when profile/provider detection changes.
+7. Update the assessor when compliance scoring changes.
+8. Regenerate Rulesync outputs.
+9. Run the self-tests.
+
+## Important commands
+
+```bash
+python3 scripts/detect_repo_standard.py --repo . --format json
+python3 scripts/repo_standards_agent.py --repo /path/to/project --standards /path/to/repo-standards
+python3 scripts/assess_repo_standards.py --repo . --standards . --output-dir /tmp/repo-standards-assessment
+python3 scripts/check_docs_ai_rule_sync.py --base-ref main
+npx rulesync generate
+```
