@@ -9,6 +9,8 @@ site_dir: site
 
 theme:
   name: material
+  logo: assets/brand/repo-standards-icon.svg
+  favicon: assets/brand/repo-standards-icon.svg
   features:
     - navigation.expand
     - navigation.sections

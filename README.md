@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/andrewtryder/repo-standards)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/andrewtryder/repo-standards?sort=semver)](https://github.com/andrewtryder/repo-standards/releases)
 
-[![Repo Standards social preview](docs/assets/brand/repo-standards-social-preview.png)](https://andrewtryder.github.io/repo-standards/)
+[![Repo Standards logo](docs/assets/brand/repo-standards-logo.svg)](https://andrewtryder.github.io/repo-standards/)
 
 Repo Standards is a reusable standards system for GitHub repositories. It covers repository policy, AI-agent instructions, CI/CD, governance, security, dependency updates, release automation, deployment guidance, and migration assessment.
 
