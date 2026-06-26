@@ -1,0 +1,64 @@
+fixtures:
+  python-service:
+    detected_profile: python-service
+    mode: existing
+    adoption_level: reusable-ci
+    visibility: private
+    license: proprietary
+    expected_files:
+      - .repo-policy.yml
+      - rulesync.jsonc
+      - AGENTS.md
+      - .github/workflows/ci.yml
+      - .github/workflows/semantic-pull-request.yml
+      - .rulesync/rules/00-org.md
+      - .rulesync/rules/20-python.md
+    act_workflow: .github/workflows/ci.yml
+
+  typescript-app:
+    detected_profile: typescript-app
+    mode: existing
+    adoption_level: reusable-ci
+    visibility: private
+    license: proprietary
+    expected_files:
+      - .repo-policy.yml
+      - rulesync.jsonc
+      - AGENTS.md
+      - .github/workflows/ci.yml
+      - .nvmrc
+      - .rulesync/rules/00-org.md
+      - .rulesync/rules/10-typescript.md
+    act_workflow: .github/workflows/ci.yml
+
+  cloudflare-worker:
+    detected_profile: typescript-cloudflare-worker
+    mode: existing
+    adoption_level: reusable-ci
+    visibility: private
+    license: proprietary
+    expected_files:
+      - .repo-policy.yml
+      - rulesync.jsonc
+      - AGENTS.md
+      - .github/workflows/ci.yml
+      - .nvmrc
+      - .rulesync/rules/00-org.md
+      - .rulesync/rules/10-typescript.md
+    act_workflow: .github/workflows/ci.yml
+
+  home-assistant:
+    detected_profile: python-service
+    profile: python-home-assistant
+    mode: existing
+    adoption_level: reusable-ci
+    visibility: public
+    license: MIT
+    expected_files:
+      - .repo-policy.yml
+      - rulesync.jsonc
+      - AGENTS.md
+      - .github/workflows/ci.yml
+      - .rulesync/rules/00-org.md
+      - .rulesync/rules/20-python.md
+    act_workflow: .github/workflows/ci.yml

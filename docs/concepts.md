@@ -54,7 +54,7 @@ Templates in `templates/` are **copied** into each application repository and cu
 
 Long-term, downstream repos should call **reusable workflows** from this standards repo via `uses:` instead of copying CI logic. Live callable workflows live in `.github/workflows/*.reusable.yml`. See [`template-drift.md`](template-drift.md).
 
-Stable consumers should pin to a release tag (e.g. `@v1.3.0`). Use `@main` only for canary repos.
+Stable consumers should pin to a release tag (e.g. `@v1.0.0`). Use `@main` only for canary repos.
 
 ## Generated files
 
@@ -88,7 +88,7 @@ node_modules/
 
 ## Assessment reports
 
-The assessor (`scripts/assess_repo_standards.py`) scores alignment with Repo Standard v1.3. Reports go to `assessments/generated/` by default, or to `--output-dir` when supplied. See [`assessment-guide.md`](assessment-guide.md).
+The assessor (`scripts/assess_repo_standards.py`) scores alignment with Repo Standard V1.0. Reports go to `assessments/generated/` by default, or to `--output-dir` when supplied. See [`assessment-guide.md`](assessment-guide.md).
 
 The **detector** (`scripts/detect_repo_standard.py`) is separate — it recommends a starting profile before adoption. It is read-only and advisory.
 

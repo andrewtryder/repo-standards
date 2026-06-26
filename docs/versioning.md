@@ -1,17 +1,17 @@
 # Versioning
 
-Repo Standards is currently **pre-1.0**.
+Repo Standards is currently **V1.0**.
 
-The repository previously used `Repo Standard v1.3` language while the standards model was evolving. Going forward, public documentation should treat the project as pre-1.0 until the wizard-first, modular workflow is stable enough to be the formal v1.0 release.
+The repository previously mixed older `v1.x`, `pre-1.0`, and future-tense V1.0 language while the standards model was evolving. Going forward, public documentation should use **V1.0** for the standards system and `v1.0.0` for the release tag.
 
 ## Current status
 
 ```text
-Current development line: pre-1.0
-Formal v1.0 target: Textual TUI + modular Repo Standards release
+Current development line: V1.0
+Stable release baseline: Textual TUI + modular Repo Standards release
 ```
 
-The existing CLI tools remain useful and supported during the pre-1.0 phase:
+The existing CLI tools remain useful and supported during the V1.0 phase:
 
 ```text
 scripts/detect_repo_standard.py
@@ -20,35 +20,29 @@ scripts/assess_repo_standards.py
 scripts/model_assisted_repo_detection.py
 ```
 
-## Why reset to pre-1.0?
+## Why V1.0?
 
-Repo Standards is moving from a set of scripts and templates into a productized standards system. The formal v1.0 should represent the first stable experience that another developer can adopt confidently.
+Repo Standards has moved from a set of scripts and templates into a productized standards system. V1.0 represents the first stable experience that another developer can adopt confidently.
 
-The v1.0 release should include:
+The V1.0 release includes:
 
 - a wizard-first migration workflow
 - a documented modular standard model
 - AI-agent standardization through Rulesync
 - CI/CD classification that preserves deploy workflows by default
-- expanded repo-type support, including Firebase
+- expanded repo-type support, including Firebase and Cloudflare Workers
 - governance questions for visibility, collaboration, discussions, issue templates, and security policy
 - expanded license choices
-- contributor and maintainer documentation
+- representative fixture repositories for local validation
 
-## Suggested pre-1.0 milestones
+## Release line
 
-| Milestone | Purpose |
+| Version | Purpose |
 |---|---|
-| `v0.1` | Existing CLI, detection, apply, and assessment foundation |
-| `v0.2` | Documentation architecture overhaul |
-| `v0.3` | Modular profile/module model |
-| `v0.4` | Textual TUI skeleton |
-| `v0.5` | AI-agent cleanup and Rulesync regeneration workflow |
-| `v0.6` | CI/CD classifier and advisory AI inference |
-| `v0.7` | Firebase and expanded repo-type support |
-| `v0.8` | Contributor and maintainer documentation |
-| `v0.9` | v1.0 release candidate |
-| `v1.0` | First stable wizard-first Repo Standards release |
+| `V1.0` | Current standards baseline |
+| `v1.0.0` | Git tag for the first stable wizard-first Repo Standards release |
+| `v1.x` | Backward-compatible additions, new modules, fixture coverage, and documentation improvements |
+| `v2.0.0` | Future breaking changes to policy shape, generated files, or adoption behavior |
 
 ## Documentation language
 
@@ -57,8 +51,9 @@ Use these terms consistently:
 | Preferred | Avoid |
 |---|---|
 | Repo Standards | repo-standards as a product name in prose |
-| pre-1.0 | current standard v1.3 |
-| Standard reference | Repo Standard v1.3 specification |
-| Wizard-first workflow | one-command apply as the primary user path |
+| V1.0 | `pre-1.0`, `v1.2`, `v1.3`, or future-tense V1.0 |
+| `v1.0.0` | older release tag examples |
+| Standard reference | mismatched versioned spec names |
+| Wizard-first workflow | manual copy/paste as the primary user path |
 
 The package/repository name remains `repo-standards`. The product name in prose is **Repo Standards**.

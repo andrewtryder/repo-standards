@@ -43,7 +43,7 @@ The **preferred long-term approach** is to define CI workflows as GitHub reusabl
 
 **When to use:** After the standard is stable, for repos with active development.
 
-Stable consumers should pin reusable workflows to a release tag such as `@v1.3.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
+Stable consumers should pin reusable workflows to a release tag such as `@v1.0.0`. Use `@main` only for canary repositories that intentionally track unreleased changes.
 
 ### Reusable workflow caller examples
 
@@ -63,7 +63,7 @@ permissions:
 
 jobs:
   node-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.0.0
     with:
       node_version: "24"
       install_command: "npm ci"
@@ -91,7 +91,7 @@ permissions:
 
 jobs:
   python-ci:
-    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.3.0
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.0.0
     with:
       python_version: "3.12"
       install_command: "python -m pip install -r requirements.txt -r requirements-dev.txt"

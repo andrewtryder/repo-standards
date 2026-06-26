@@ -1,0 +1,18 @@
+{
+  "action": "opened",
+  "number": 1,
+  "pull_request": {
+    "head": {
+      "ref": "feature/fixture"
+    },
+    "base": {
+      "ref": "main"
+    }
+  },
+  "repository": {
+    "name": "fixture-repo",
+    "owner": {
+      "login": "fixture"
+    }
+  }
+}

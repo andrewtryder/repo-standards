@@ -3,7 +3,7 @@
 [![Standards Repo CI](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml)
 [![Docs Pages](https://github.com/andrewtryder/repo-standards/actions/workflows/docs-pages.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/docs-pages.yml)
 [![Release Please](https://github.com/andrewtryder/repo-standards/actions/workflows/release-please.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/release-please.yml)
-[![Status](https://img.shields.io/badge/status-pre--1.0-orange)](docs/versioning.md)
+[![Status](https://img.shields.io/badge/status-V1.0-brightgreen)](docs/versioning.md)
 [![License](https://img.shields.io/github/license/andrewtryder/repo-standards)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/andrewtryder/repo-standards?sort=semver)](https://github.com/andrewtryder/repo-standards/releases)
 
@@ -11,7 +11,7 @@
 
 Repo Standards is a reusable standards system for GitHub repositories. It covers repository policy, AI-agent instructions, CI/CD, governance, security, dependency updates, release automation, deployment guidance, and migration assessment.
 
-**Current status:** pre-1.0. The formal v1.0 target is a wizard-first, modular release. See [`docs/versioning.md`](docs/versioning.md) and [`docs/roadmap.md`](docs/roadmap.md).
+**Current status:** V1.0. The current release is a wizard-first, modular baseline. See [`docs/versioning.md`](docs/versioning.md) and [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Who this is for
 
@@ -28,11 +28,11 @@ It is intended to help with:
 
 ## Recommended path
 
-The v1.0 direction is **wizard first, CLI second, manual copy/paste third**.
+The V1.0 workflow is **wizard first, CLI second, manual copy/paste third**.
 
 | Situation | Start here |
 |---|---|
-| You want the v1.0 product direction | [`docs/getting-started/wizard.md`](docs/getting-started/wizard.md) |
+| You want the V1.0 workflow | [`docs/getting-started/wizard.md`](docs/getting-started/wizard.md) |
 | You are migrating an existing repository today | [`docs/existing-repository-migration.md`](docs/existing-repository-migration.md) |
 | You are setting up a new repository today | [`docs/new-repository-setup.md`](docs/new-repository-setup.md) |
 | You need current CLI commands | [`docs/using-repo-standards.md`](docs/using-repo-standards.md) |
@@ -66,7 +66,7 @@ npx rulesync generate
 
 ## Core model
 
-Repo Standards is moving toward a modular composition model:
+Repo Standards uses a modular composition model:
 
 ```text
 core
@@ -134,7 +134,7 @@ Documentation site: <https://andrewtryder.github.io/repo-standards/>
 
 | Need | Read |
 |---|---|
-| Versioning and v1.0 target | [`docs/versioning.md`](docs/versioning.md) |
+| Versioning and V1.0 baseline | [`docs/versioning.md`](docs/versioning.md) |
 | Roadmap | [`docs/roadmap.md`](docs/roadmap.md) |
 | Wizard-first workflow | [`docs/getting-started/wizard.md`](docs/getting-started/wizard.md) |
 | Modular model | [`docs/core/modular-standards.md`](docs/core/modular-standards.md) |

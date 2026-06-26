@@ -1,8 +1,8 @@
 # Wizard-first adoption
 
-The planned v1.0 default workflow for Repo Standards is an interactive Textual terminal wizard.
+The V1.0 default workflow for Repo Standards is an interactive Textual terminal wizard.
 
-Until the wizard is implemented, use the existing CLI flows in [Using Repo Standards](../using-repo-standards.md), [Existing repository migration](../existing-repository-migration.md), and [New repository setup](../new-repository-setup.md).
+The existing CLI flows in [Using Repo Standards](../using-repo-standards.md), [Existing repository migration](../existing-repository-migration.md), and [New repository setup](../new-repository-setup.md) remain supported for scripted adoption and debugging.
 
 ## Why wizard first?
 
@@ -21,13 +21,13 @@ Repo Standards migrations involve decisions that should be explicit:
 
 A TUI makes these choices reviewable before any files are changed.
 
-## Target launch command
+## Launch command
 
 ```bash
 python3 scripts/repo_standards_wizard.py
 ```
 
-Expected options:
+Common options:
 
 ```bash
 python3 scripts/repo_standards_wizard.py \
@@ -35,7 +35,7 @@ python3 scripts/repo_standards_wizard.py \
   --standards /path/to/repo-standards
 ```
 
-## Planned wizard flow
+## Wizard flow
 
 1. Select the target repository.
 2. Confirm existing/new repository mode.
@@ -53,7 +53,7 @@ python3 scripts/repo_standards_wizard.py \
 
 ## Governance questions
 
-The wizard should ask:
+The wizard asks:
 
 | Question | Why it matters |
 |---|---|
@@ -68,7 +68,7 @@ The wizard should ask:
 
 ## AI-agent cleanup
 
-The wizard should detect legacy or generated AI/editor instruction files:
+The wizard detects legacy or generated AI/editor instruction files:
 
 ```text
 AGENTS.md
@@ -79,7 +79,7 @@ CLAUDE.md
 .antigravity/
 ```
 
-The wizard should require explicit confirmation before deleting or replacing these files.
+The wizard requires explicit confirmation before deleting or replacing these files.
 
 Recommended confirmation text:
 
@@ -87,7 +87,7 @@ Recommended confirmation text:
 replace-ai-files
 ```
 
-After migration, canonical source should be:
+After migration, canonical source is:
 
 ```text
 .repo-policy.yml
@@ -95,7 +95,7 @@ rulesync.jsonc
 .rulesync/rules/*.md
 ```
 
-Generated outputs should be produced by Rulesync:
+Generated outputs are produced by Rulesync:
 
 ```text
 AGENTS.md
@@ -137,7 +137,7 @@ Recommended confirmation text:
 standardize-ci
 ```
 
-Deploy, release, publish, Firebase, Cloudflare, GCP, Railway, Docker, and GitHub Pages workflows should be preserved by default.
+Deploy, release, publish, Firebase, Cloudflare, GCP, Railway, Docker, and GitHub Pages workflows are preserved by default.
 
 ## Plan preview
 
