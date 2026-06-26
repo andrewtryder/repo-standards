@@ -43,20 +43,30 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Adoption:
-      - Using repo-standards: using-repo-standards.md
-      - New repository setup: new-repository-setup.md
+  - Getting started:
+      - Wizard-first adoption: getting-started/wizard.md
       - Existing repository migration: existing-repository-migration.md
+      - New repository setup: new-repository-setup.md
       - Migration order: migration-order.md
-  - Concepts and profiles:
+      - CLI usage: using-repo-standards.md
+  - Core model:
       - Core concepts: concepts.md
+      - Modular standards: core/modular-standards.md
+      - AI-agent standardization: core/ai-agent-standardization.md
+      - Governance model: core/governance-model.md
+      - License selection: core/license-selection.md
       - Profiles: profiles.md
       - Detection: detection.md
+  - Roadmap and versioning:
+      - Roadmap: roadmap.md
+      - Versioning: versioning.md
+      - Documentation overhaul plan: docs-overhaul-plan.md
+  - Migration tools:
+      - Assessment guide: assessment-guide.md
       - GitHub Models migration: github-models-migration.md
       - GitHub Models detection: github-models-detection.md
-      - Assessment guide: assessment-guide.md
-  - Specification:
-      - Repo Standard v1.3: repo-standard-v1.md
+  - Specification and automation:
+      - Standard reference: repo-standard-v1.md
       - Branch protection: branch-protection.md
       - Template drift: template-drift.md
       - Reusable workflows: reusable-workflows.md
@@ -64,7 +74,6 @@ nav:
       - Publishing: publishing.md
   - AI and governance:
       - AI rules maintenance: ai-rules-maintenance.md
-      - GitHub Models migration: github-models-migration.md
       - CODEOWNERS: codeowners.md
   - Security and dependencies:
       - Security scanning: security-scanning.md
