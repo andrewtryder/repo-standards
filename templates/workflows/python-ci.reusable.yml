@@ -40,7 +40,7 @@ on:
         description: "Extra args for coverage"
         required: false
         type: string
-        default: "--report-only"
+        default: ""
 
 permissions:
   contents: read
@@ -70,6 +70,6 @@ jobs:
       - name: Test + coverage
         run: |
           ${{ inputs.test_command }}
-          coverage report
-        # Coverage is report-only by default (${{ inputs.coverage_args }}).
+          coverage report ${{ inputs.coverage_args }}
+        # Coverage is report-only by default.
         # Add --fail-under=<threshold> to the coverage command when ready.
