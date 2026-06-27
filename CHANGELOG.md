@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/andrewtryder/repo-standards/compare/v1.2.0...v1.3.0) (2026-06-27)
+
+
+### Features
+
+* **standards:** add V1.0 wizard and fixture harness ([#31](https://github.com/andrewtryder/repo-standards/issues/31)) ([7ec739b](https://github.com/andrewtryder/repo-standards/commit/7ec739b23b8286992228f594366a9bcb90f88682))
+
 ## [1.2.0](https://github.com/andrewtryder/repo-standards/compare/v1.1.0...v1.2.0) (2026-06-26)
 
 
