@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/andrewtryder/repo-standards/compare/v1.3.0...v1.4.0) (2026-06-27)
+
+
+### Features
+
+* **standards:** improve adoption workflow ([#35](https://github.com/andrewtryder/repo-standards/issues/35)) ([6bbab0a](https://github.com/andrewtryder/repo-standards/commit/6bbab0a4b861ed3981250cebd7e5e8f80d931d8f))
+
 ## [1.3.0](https://github.com/andrewtryder/repo-standards/compare/v1.2.0...v1.3.0) (2026-06-27)
 
 
