@@ -628,7 +628,10 @@ def score_report(
             score -= 2
             warnings.append("Node repo has no build script")
         if not pkg["has_rulesync_dependency"]:
-            warnings.append("rulesync is not pinned as a devDependency; acceptable initially, but pin later")
+            warnings.append(
+                "rulesync is not pinned as a devDependency; install it with "
+                "`npm install -D rulesync` or the equivalent package-manager command"
+            )
         if not pkg["has_nvmrc"]:
             warnings.append("Node repo missing `.nvmrc`; recommended but not yet required")
     if not pkg["has_dependabot"]:
@@ -746,6 +749,8 @@ def make_recommendations(
         recs.append("Add `rulesync.jsonc` from the standards template.")
     if not ai["has_rulesync_rules_dir"]:
         recs.append("Add `.rulesync/rules/*` as the canonical AI/editor source.")
+    if ai["has_rulesync_config"] and not state["package"]["has_rulesync_dependency"]:
+        recs.append("Install Rulesync as a dev dependency, then run `npx rulesync generate`.")
     if not ai["has_agents_md"]:
         recs.append("Run Rulesync and commit generated files.")
     if not ai["has_cursor_rules_dir"]:

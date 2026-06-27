@@ -65,7 +65,33 @@ PROTECTED_PATH_PATTERNS = [
 
 PROTECTED_PREFIXES = ("src/", "app/", "lib/")
 
-NODE_CI_WORKFLOW = """name: CI
+def yaml_string(value: str) -> str:
+    return json.dumps(value)
+
+
+def render_node_ci_workflow(commands: dict[str, str]) -> str:
+    values = {
+        "install_command": commands.get("install", "npm ci"),
+        "format_check_command": commands.get(
+            "format_check",
+            "npm run format:check --if-present",
+        ),
+        "lint_command": commands.get("lint", "npm run lint --if-present"),
+        "typecheck_command": commands.get(
+            "typecheck",
+            "npm run typecheck --if-present",
+        ),
+        "test_command": commands.get("test", "npm test --if-present"),
+        "coverage_command": commands.get(
+            "coverage",
+            "npm run test:coverage --if-present",
+        ),
+        "build_command": commands.get("build", "npm run build --if-present"),
+    }
+    rendered = "\n".join(
+        f"      {key}: {yaml_string(value)}" for key, value in values.items()
+    )
+    return f"""name: CI
 
 on:
   pull_request:
@@ -80,13 +106,7 @@ jobs:
     uses: andrewtryder/repo-standards/.github/workflows/node-ci.reusable.yml@v1.0.0
     with:
       node_version: "24"
-      install_command: "npm ci"
-      format_check_command: "npm run format:check --if-present"
-      lint_command: "npm run lint --if-present"
-      typecheck_command: "npm run typecheck --if-present"
-      test_command: "npm test --if-present"
-      coverage_command: "npm run test:coverage --if-present"
-      build_command: "npm run build --if-present"
+{rendered}
 """
 
 PYTHON_CI_WORKFLOW = """name: CI
@@ -108,7 +128,7 @@ jobs:
       format_check_command: "ruff format --check ."
       lint_command: "ruff check ."
       test_command: "coverage run -m pytest"
-      coverage_args: "--report-only"
+      coverage_args: ""
 """
 
 PYTHON_HOME_ASSISTANT_CI_WORKFLOW = """name: CI
@@ -130,7 +150,7 @@ jobs:
       format_check_command: "ruff format --check ."
       lint_command: "ruff check ."
       test_command: "coverage run -m pytest"
-      coverage_args: "--report-only"
+      coverage_args: ""
 """
 
 
@@ -138,7 +158,7 @@ def reusable_ci_workflow_for(repo: Path, detection: dict[str, Any]) -> str | Non
     """Return the reusable CI caller content for supported detected languages."""
     language = detection.get("language")
     if language == "typescript":
-        return NODE_CI_WORKFLOW
+        return render_node_ci_workflow(infer_commands(repo, detection))
     if language == "python":
         if (
             detection.get("recommended_profile") == "python-home-assistant"
@@ -356,6 +376,9 @@ class MigrationSummary:
     commit_requested: bool = False
     rendered_repo_policy: str | None = None
     will_run_rulesync: bool = True
+    install_rulesync: bool = False
+    rulesync_install_result: str = "skipped"
+    rulesync_install_output: str = ""
     recommendations: list[str] = field(default_factory=list)
     actions: list[Action] = field(default_factory=list)
     rulesync_ran: bool = False
@@ -534,6 +557,64 @@ def load_package_scripts(repo: Path) -> dict[str, str]:
     return scripts if isinstance(scripts, dict) else {}
 
 
+def load_package_data(repo: Path) -> dict[str, Any]:
+    pkg_path = repo / "package.json"
+    if not pkg_path.is_file():
+        return {}
+    try:
+        data = json.loads(read_text(pkg_path))
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def has_package_dependency(repo: Path, name: str) -> bool:
+    package = load_package_data(repo)
+    for section in (
+        "dependencies",
+        "devDependencies",
+        "peerDependencies",
+        "optionalDependencies",
+    ):
+        deps = package.get(section, {})
+        if isinstance(deps, dict) and name in deps:
+            return True
+    return False
+
+
+def package_manager_for_repo(repo: Path, detection: dict[str, Any]) -> str:
+    package_manager = detection.get("package_manager")
+    if package_manager == "pnpm" or (repo / "pnpm-lock.yaml").is_file():
+        return "pnpm"
+    if package_manager == "yarn" or (repo / "yarn.lock").is_file():
+        return "yarn"
+    if (
+        package_manager == "bun"
+        or (repo / "bun.lock").is_file()
+        or (repo / "bun.lockb").is_file()
+    ):
+        return "bun"
+    return "npm"
+
+
+def rulesync_install_command(repo: Path, detection: dict[str, Any]) -> list[str] | None:
+    if not (repo / "package.json").is_file():
+        return None
+    package_manager = package_manager_for_repo(repo, detection)
+    if package_manager == "pnpm":
+        return ["pnpm", "add", "-D", "rulesync"]
+    if package_manager == "yarn":
+        return ["yarn", "add", "-D", "rulesync"]
+    if package_manager == "bun":
+        return ["bun", "add", "-d", "rulesync"]
+    return ["npm", "install", "-D", "rulesync"]
+
+
+def rulesync_install_command_text(repo: Path, detection: dict[str, Any]) -> str | None:
+    command = rulesync_install_command(repo, detection)
+    return " ".join(command) if command else None
+
+
 def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
     commands: dict[str, str] = {}
     language = detection.get("language")
@@ -541,14 +622,44 @@ def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
 
     if language == "typescript" or package_manager in {"npm", "pnpm", "yarn", "bun"}:
         scripts = load_package_scripts(repo)
-        if (repo / "package-lock.json").is_file():
+        if package_manager == "pnpm" or (repo / "pnpm-lock.yaml").is_file():
+            package_manager = "pnpm"
+        elif package_manager == "yarn" or (repo / "yarn.lock").is_file():
+            package_manager = "yarn"
+        elif (
+            package_manager == "bun"
+            or (repo / "bun.lock").is_file()
+            or (repo / "bun.lockb").is_file()
+        ):
+            package_manager = "bun"
+        elif (repo / "package-lock.json").is_file():
+            package_manager = "npm"
+        else:
+            package_manager = "npm"
+
+        if package_manager == "npm" and (repo / "package-lock.json").is_file():
             commands["install"] = "npm ci"
         elif package_manager == "pnpm":
             commands["install"] = "pnpm install --frozen-lockfile"
         elif package_manager == "yarn":
             commands["install"] = "yarn install --frozen-lockfile"
+        elif package_manager == "bun":
+            commands["install"] = "bun install --frozen-lockfile"
         else:
             commands["install"] = "npm install"
+
+        run_prefix = {
+            "npm": "npm run",
+            "pnpm": "pnpm run",
+            "yarn": "yarn run",
+            "bun": "bun run",
+        }.get(package_manager, "npm run")
+        absent_fallback = {
+            "npm": "npm run {script} --if-present",
+            "pnpm": "pnpm run {script} --if-present",
+            "yarn": ":",
+            "bun": ":",
+        }.get(package_manager, "npm run {script} --if-present")
 
         script_map = {
             "format_check": "format:check",
@@ -559,9 +670,18 @@ def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
         }
         for cmd_key, script_name in script_map.items():
             if script_name in scripts:
-                commands[cmd_key] = f"npm run {script_name}"
+                commands[cmd_key] = f"{run_prefix} {script_name}"
+            else:
+                commands[cmd_key] = absent_fallback.format(script=script_name)
         if "test" in scripts:
-            commands["test"] = "npm test"
+            if package_manager == "npm":
+                commands["test"] = "npm test"
+            else:
+                commands["test"] = f"{run_prefix} test"
+        elif package_manager in {"npm", "pnpm"}:
+            commands["test"] = f"{package_manager} test --if-present"
+        else:
+            commands["test"] = ":"
     elif language == "python":
         commands["install"] = "python -m pip install -r requirements.txt -r requirements-dev.txt"
         commands["format_check"] = "ruff format --check ."
@@ -1132,6 +1252,8 @@ def preflight_generated_outputs(
     will_run_rulesync: bool,
 ) -> None:
     source_names = rulesync_source_rule_names(repo, selected_rules)
+    if summary.migrate_existing_agent_rules:
+        source_names.update(summary.migrated_agent_rule_targets)
 
     orphaned: list[str] = []
     for rel in existing_generated_agent_rules(repo):
@@ -1154,7 +1276,7 @@ def preflight_generated_outputs(
         )
         summary.recommendations.append(
             f"Review whether `{rel}` should be migrated into "
-            f"`.rulesync/rules/{agent_rule_to_rulesync_name(Path(rel).name)}` "
+            f"`.rulesync/rules/{agent_rule_to_rulesync_name(Path(rel))}` "
             "before running Rulesync."
         )
 
@@ -1378,6 +1500,27 @@ def plan_formatting_recommendations(summary: MigrationSummary, repo: Path) -> No
             "CHANGELOG.md exists; if format check fails, run "
             "`npx prettier --write CHANGELOG.md` or rerun migration with "
             "--format-existing-docs."
+        )
+
+
+def plan_rulesync_install_recommendation(summary: MigrationSummary, repo: Path) -> None:
+    if not (repo / "rulesync.jsonc").is_file() and not has_primary_action(
+        summary, "rulesync.jsonc"
+    ):
+        return
+    if has_package_dependency(repo, "rulesync"):
+        return
+
+    command = rulesync_install_command_text(repo, summary.detection)
+    if command:
+        summary.recommendations.append(
+            "Rulesync is not installed in this repository. "
+            f"Install it with `{command}`, or rerun apply with `--install-rulesync`."
+        )
+    else:
+        summary.recommendations.append(
+            "Rulesync is not installed in this repository. "
+            "Install it before running Rulesync generation."
         )
 
 
@@ -1958,6 +2101,7 @@ def build_plan(
         Action("WARN", repo.as_posix(), "Package manager preserved.")
     )
 
+    plan_rulesync_install_recommendation(summary, repo)
     plan_formatting_recommendations(summary, repo)
 
     if mode == "new":
@@ -2194,6 +2338,27 @@ def run_rulesync(repo: Path) -> tuple[bool, str]:
     return completed.returncode == 0, output
 
 
+def install_rulesync(repo: Path, detection: dict[str, Any]) -> tuple[bool, str]:
+    command = rulesync_install_command(repo, detection)
+    if not command:
+        return False, "No package.json found; install Rulesync manually for this project type."
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        return False, str(exc)
+
+    output = "\n".join(
+        part for part in (completed.stdout, completed.stderr) if part
+    ).strip()
+    return completed.returncode == 0, output
+
+
 def check_rulesync_outputs(summary: MigrationSummary, repo: Path) -> None:
     expected = [repo / "AGENTS.md", repo / ".cursor" / "rules"]
     missing = [path.relative_to(repo).as_posix() for path in expected if not path.exists()]
@@ -2361,6 +2526,8 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
         [
             "## Rulesync",
             "",
+            f"- Install requested: `{summary.install_rulesync}`",
+            f"- Install result: `{summary.rulesync_install_result}`",
             f"- Ran: `{summary.rulesync_ran}`",
             f"- Result: `{summary.rulesync_result}`",
             "",
@@ -2384,6 +2551,18 @@ def format_summary_markdown(summary: MigrationSummary) -> str:
             "",
         ]
     )
+
+    if summary.rulesync_install_output:
+        lines.extend(
+            [
+                "## Rulesync install output",
+                "",
+                "```text",
+                summary.rulesync_install_output,
+                "```",
+                "",
+            ]
+        )
 
     if summary.rulesync_output:
         lines.extend(["## Rulesync output", "", "```text", summary.rulesync_output, "```", ""])
@@ -2438,6 +2617,9 @@ def summary_to_json(summary: MigrationSummary) -> dict[str, Any]:
             for a in summary.actions
         ],
         "rulesync": {
+            "install_requested": summary.install_rulesync,
+            "install_result": summary.rulesync_install_result,
+            "install_output": summary.rulesync_install_output,
             "ran": summary.rulesync_ran,
             "result": summary.rulesync_result,
             "output": summary.rulesync_output,
@@ -2546,6 +2728,11 @@ def parse_args() -> argparse.Namespace:
         "--skip-rulesync",
         action="store_true",
         help="Do not run Rulesync.",
+    )
+    parser.add_argument(
+        "--install-rulesync",
+        action="store_true",
+        help="Install Rulesync as a dev dependency before running Rulesync.",
     )
     parser.add_argument(
         "--run-assessment",
@@ -2703,6 +2890,7 @@ def main() -> int:
     summary.apply_mode = apply_mode
     summary.interactive = args.interactive
     summary.commit_requested = args.commit
+    summary.install_rulesync = args.install_rulesync
 
     if args.dry_run_ai_summary:
         safe = build_ai_safe_summary(summary, repo)
@@ -2773,6 +2961,7 @@ def main() -> int:
         summary.apply_mode = apply_mode
         summary.interactive = True
         summary.commit_requested = args.commit
+        summary.install_rulesync = args.install_rulesync
         summary.ai_assessment = summary.ai_assessment or None
 
     if apply_mode:
@@ -2797,7 +2986,22 @@ def main() -> int:
         if summary.cleanup_generated_artifacts and summary.tracked_generated_artifacts:
             remove_tracked_coverage_from_index(repo, summary.tracked_generated_artifacts)
 
-        if will_run_rulesync:
+        if will_run_rulesync and args.install_rulesync and not has_package_dependency(repo, "rulesync"):
+            ok, output = install_rulesync(repo, summary.detection)
+            summary.rulesync_install_output = output
+            if ok:
+                summary.rulesync_install_result = "passed"
+            else:
+                summary.rulesync_install_result = "failed"
+                summary.rulesync_result = "skipped"
+                summary.actions.append(
+                    Action("BLOCK", "rulesync", "Rulesync install failed.")
+                )
+                print("Error: Rulesync install failed.", file=sys.stderr)
+                if output:
+                    print(output, file=sys.stderr)
+
+        if will_run_rulesync and summary.rulesync_install_result != "failed":
             summary.rulesync_ran = True
             ok, output = run_rulesync(repo)
             summary.rulesync_output = output

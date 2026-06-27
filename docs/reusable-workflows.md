@@ -76,7 +76,7 @@ jobs:
       format_check_command: "ruff format --check ."
       lint_command: "ruff check ."
       test_command: "coverage run -m pytest"
-      coverage_args: "--report-only"
+      coverage_args: ""
 ```
 
 ## Optional file-pattern code quality caller

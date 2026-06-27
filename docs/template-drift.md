@@ -98,7 +98,7 @@ jobs:
       lint_command: "ruff check ."
       format_check_command: "ruff format --check ."
       test_command: "coverage run -m pytest"
-      coverage_args: "--report-only"
+      coverage_args: ""
 ```
 
 ### Reusable workflow locations
