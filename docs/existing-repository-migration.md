@@ -33,9 +33,10 @@ python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo .
 
 The detector is read-only and advisory. Use its output to choose a starting profile, then review `.repo-policy.yml` manually. See [`detection.md`](detection.md).
 
-If your repo deploys to Cloudflare, GCP, or Railway, read the matching deployment guide before migration:
+If your repo deploys to Cloudflare, Fly.io, GCP, or Railway, read the matching deployment guide before migration:
 
 - [`deployment/cloudflare.md`](deployment/cloudflare.md)
+- [`deployment/fly.md`](deployment/fly.md)
 - [`deployment/gcp.md`](deployment/gcp.md)
 - [`deployment/railway.md`](deployment/railway.md)
 

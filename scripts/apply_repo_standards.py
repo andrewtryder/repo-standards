@@ -154,6 +154,39 @@ jobs:
 """
 
 
+def render_python_ci_workflow(commands: dict[str, str], python_version: str = "3.12") -> str:
+    values = {
+        "python_version": python_version,
+        "install_command": commands.get(
+            "install_dev",
+            commands.get("install", "python -m pip install -r requirements.txt"),
+        ),
+        "format_check_command": commands.get("format_check", "ruff format --check ."),
+        "lint_command": commands.get("lint", "ruff check ."),
+        "test_command": commands.get("test", "coverage run -m pytest"),
+        "coverage_args": "",
+    }
+    rendered = "\n".join(
+        f"      {key}: {yaml_string(value)}" for key, value in values.items()
+    )
+    return f"""name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python-ci:
+    uses: andrewtryder/repo-standards/.github/workflows/python-ci.reusable.yml@v1.0.0
+    with:
+{rendered}
+"""
+
+
 def reusable_ci_workflow_for(repo: Path, detection: dict[str, Any]) -> str | None:
     """Return the reusable CI caller content for supported detected languages."""
     language = detection.get("language")
@@ -165,7 +198,7 @@ def reusable_ci_workflow_for(repo: Path, detection: dict[str, Any]) -> str | Non
             and (repo / "requirements_test.txt").is_file()
         ):
             return PYTHON_HOME_ASSISTANT_CI_WORKFLOW
-        return PYTHON_CI_WORKFLOW
+        return render_python_ci_workflow(infer_commands(repo, detection))
     return None
 
 STANDARDS_OWNED_WORKFLOW_NAMES = {
@@ -615,6 +648,42 @@ def rulesync_install_command_text(repo: Path, detection: dict[str, Any]) -> str 
     return " ".join(command) if command else None
 
 
+def python_install_command(repo: Path, *, include_dev_tools: bool) -> str:
+    parts = ["python", "-m", "pip", "install"]
+    requirement_files = [
+        name
+        for name in (
+            "requirements.txt",
+            "requirements-dev.txt",
+            "requirements-test.txt",
+            "requirements_test.txt",
+            "dev-requirements.txt",
+        )
+        if (repo / name).is_file()
+    ]
+    for filename in requirement_files:
+        parts.extend(["-r", filename])
+
+    if not requirement_files and (repo / "pyproject.toml").is_file():
+        parts.append(".")
+
+    if include_dev_tools and not any(
+        filename != "requirements.txt" for filename in requirement_files
+    ):
+        extras = ["pytest", "coverage", "ruff"]
+        requirements_text = "\n".join(
+            read_text(repo / filename).lower() for filename in requirement_files
+        )
+        if "fastapi" in requirements_text:
+            extras.append("httpx")
+        parts.extend(extras)
+
+    if parts == ["python", "-m", "pip", "install"]:
+        parts.extend(["pytest", "coverage", "ruff"])
+
+    return " ".join(parts)
+
+
 def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
     commands: dict[str, str] = {}
     language = detection.get("language")
@@ -683,7 +752,8 @@ def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
         else:
             commands["test"] = ":"
     elif language == "python":
-        commands["install"] = "python -m pip install -r requirements.txt -r requirements-dev.txt"
+        commands["install"] = python_install_command(repo, include_dev_tools=False)
+        commands["install_dev"] = python_install_command(repo, include_dev_tools=True)
         commands["format_check"] = "ruff format --check ."
         commands["lint"] = "ruff check ."
         commands["test"] = "coverage run -m pytest"

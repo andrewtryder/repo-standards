@@ -17,6 +17,7 @@ from apply_repo_standards import (  # noqa: E402
     build_plan,
     reusable_ci_workflow_for,
 )
+from detect_repo_standard import detect_repo  # noqa: E402
 
 
 def write(path: Path, text: str) -> None:
@@ -34,6 +35,22 @@ def node_detection(package_manager: str) -> dict[str, str]:
 
 
 class ApplyRepoStandardsTests(unittest.TestCase):
+    def test_detect_repo_identifies_fly_deployment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            write(repo / "requirements.txt", "fastapi\n")
+            write(repo / "main.py", "print('hello')\n")
+            write(repo / "fly.toml", "app = 'demo'\n")
+            write(
+                repo / ".github/workflows/fly.yml",
+                "name: Fly Deploy\nsteps:\n  - run: flyctl deploy\n",
+            )
+
+            result = detect_repo(repo, ROOT)
+
+            self.assertEqual(result["deployment_provider"], "fly")
+            self.assertIn("fly.toml exists", result["evidence"])
+
     def test_node_reusable_ci_uses_inferred_package_manager_commands(self) -> None:
         cases = [
             ("npm", "package-lock.json", "npm ci", "npm run lint", "npm test"),
@@ -114,6 +131,48 @@ class ApplyRepoStandardsTests(unittest.TestCase):
             assert workflow is not None
             self.assertIn('coverage_args: ""', workflow)
             self.assertNotIn("--report-only", workflow)
+
+    def test_python_reusable_ci_uses_existing_requirements_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            write(repo / "requirements.txt", "fastapi\n")
+
+            workflow = reusable_ci_workflow_for(
+                repo,
+                {
+                    "language": "python",
+                    "package_manager": "pip-requirements",
+                    "recommended_profile": "python-service",
+                },
+            )
+
+            assert workflow is not None
+            self.assertIn(
+                'install_command: "python -m pip install -r requirements.txt pytest coverage ruff httpx"',
+                workflow,
+            )
+            self.assertNotIn("requirements-dev.txt", workflow)
+
+    def test_python_reusable_ci_includes_dev_requirements_when_present(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            write(repo / "requirements.txt", "fastapi\n")
+            write(repo / "requirements-dev.txt", "pytest\ncoverage\nruff\n")
+
+            workflow = reusable_ci_workflow_for(
+                repo,
+                {
+                    "language": "python",
+                    "package_manager": "pip-requirements",
+                    "recommended_profile": "python-service",
+                },
+            )
+
+            assert workflow is not None
+            self.assertIn(
+                'install_command: "python -m pip install -r requirements.txt -r requirements-dev.txt"',
+                workflow,
+            )
 
     def test_migrated_agent_rule_does_not_false_block_rulesync_preflight(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
