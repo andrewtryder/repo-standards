@@ -50,6 +50,7 @@ TEXT_SCAN_PATHS = [
     "wrangler.toml",
     "wrangler.json",
     "wrangler.jsonc",
+    "fly.toml",
     "railway.json",
     "cloudbuild.yaml",
     "cloudbuild.yml",
@@ -154,6 +155,21 @@ DEFAULT_RULES: dict[str, Any] = {
                             "README.md",
                         ],
                         "terms": ["railway"],
+                    }
+                },
+            ]
+        },
+        "fly": {
+            "evidence": [
+                {"file": "fly.toml"},
+                {
+                    "contains": {
+                        "paths": [
+                            ".github/workflows/*.yml",
+                            ".github/workflows/*.yaml",
+                            "README.md",
+                        ],
+                        "terms": ["flyctl", "fly.io", "fly deploy"],
                     }
                 },
             ]
@@ -435,7 +451,7 @@ def manual_review_notes(
     notes: list[str] = []
     if language == "unknown" or profile == "mixed-special":
         notes.append("Could not confidently detect language/profile")
-    if deployment_provider in {"cloudflare", "gcp", "railway"}:
+    if deployment_provider in {"cloudflare", "gcp", "railway", "fly"}:
         notes.append("Verify deploy workflow should remain repo-specific")
     if "multiple deploy providers detected" in " ".join(deploy_evidence):
         notes.append("Review deploy provider — multiple signals detected")

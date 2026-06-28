@@ -147,6 +147,26 @@ def read_json(path: Path) -> dict[str, Any]:
 
 
 def iter_files(repo: Path) -> list[Path]:
+    if (repo / ".git").exists():
+        try:
+            completed = subprocess.run(
+                ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+                cwd=repo,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            completed = None
+        if completed and completed.returncode == 0:
+            files = [
+                repo / line
+                for line in completed.stdout.splitlines()
+                if line and (repo / line).is_file()
+            ]
+            if files:
+                return sorted(files)
+
     files: list[Path] = []
     for root, dirs, names in os.walk(repo):
         dirs[:] = [name for name in dirs if name not in SKIP_DIRS]
