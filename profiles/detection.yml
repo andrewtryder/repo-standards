@@ -79,6 +79,19 @@ deploy:
           terms:
             - railway
 
+  fly:
+    evidence:
+      - file: fly.toml
+      - contains:
+          paths:
+            - .github/workflows/*.yml
+            - .github/workflows/*.yaml
+            - README.md
+          terms:
+            - flyctl
+            - fly.io
+            - fly deploy
+
 profiles:
   typescript-cloudflare-worker:
     when:

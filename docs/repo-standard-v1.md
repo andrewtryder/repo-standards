@@ -574,7 +574,8 @@ When assessing a standards migration PR, the assessor should distinguish between
 - ESLint warnings or errors
 - npm audit vulnerabilities
 - Legacy stale agent files being removed
-- Missing `rulesync` devDependency (acceptable initially, pin later)
+- Missing pinned Rulesync tooling dependency. Rulesync is mandatory for every
+  repo; non-Node repos should use a private tooling-only `package.json`.
 - Missing `.nvmrc` in a Node repo (recommended but not yet required)
 - Missing `.github/dependabot.yml` (recommended but not yet required)
 - Missing secret scanning workflow (recommended but not yet required)

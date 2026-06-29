@@ -84,6 +84,7 @@ nav:
       - Dependency updates: dependency-updates.md
   - Deployment:
       - Cloudflare: deployment/cloudflare.md
+      - Fly.io: deployment/fly.md
       - GCP: deployment/gcp.md
       - Railway: deployment/railway.md
   - Tooling:

@@ -131,7 +131,8 @@ Warnings indicate technical debt or recommended improvements that don't block th
 - ESLint warnings or errors
 - npm audit vulnerabilities
 - Legacy stale agent files being removed
-- Missing `rulesync` devDependency (acceptable initially)
+- Missing pinned `rulesync` tooling dependency. For non-Node repos, add a
+  private tooling-only `package.json` with Rulesync in `devDependencies`.
 - Missing `.nvmrc` in a Node repo
 - Missing `.github/dependabot.yml`
 - Missing secret scanning workflow

@@ -7,6 +7,11 @@ governance:
   pull_request_template: required
 python_version: "3.12"
 package_manager: pip-requirements
+dependency_standards:
+  runtime: requirements.txt
+  development: requirements-dev.txt
+  repo_tooling: package.json devDependencies for Rulesync
+  policy: keep dev/test tools out of runtime requirements
 
 commands:
   install: python -m pip install -r requirements.txt

@@ -197,6 +197,41 @@ def read_json(path: Path) -> dict[str, Any]:
         return {}
 
 
+PYTHON_DEV_REQUIREMENT_FILES = (
+    "requirements-dev.txt",
+    "requirements-test.txt",
+    "requirements_test.txt",
+    "dev-requirements.txt",
+)
+
+NODE_DEV_TOOL_PACKAGES = {
+    "@commitlint/cli",
+    "@commitlint/config-conventional",
+    "@eslint/js",
+    "@vitest/coverage-v8",
+    "commitlint",
+    "eslint",
+    "husky",
+    "jest",
+    "lint-staged",
+    "mocha",
+    "prettier",
+    "rulesync",
+    "typescript",
+    "typescript-eslint",
+    "vitest",
+}
+
+
+def is_node_dev_tool_package(name: str) -> bool:
+    return (
+        name in NODE_DEV_TOOL_PACKAGES
+        or name.startswith("@types/")
+        or name.startswith("eslint-")
+        or name.startswith("@eslint/")
+    )
+
+
 def exists(repo: Path, rel: str) -> bool:
     return (repo / rel).exists()
 
@@ -258,6 +293,8 @@ def package_state(repo: Path) -> dict[str, Any]:
     package = read_json(repo / "package.json") if exists(repo, "package.json") else {}
     scripts = package.get("scripts") or {}
 
+    runtime_deps = package.get("dependencies") or {}
+    dev_deps = package.get("devDependencies") or {}
     deps: dict[str, str] = {}
     for section in ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]:
         deps.update(package.get(section) or {})
@@ -284,6 +321,11 @@ def package_state(repo: Path) -> dict[str, Any]:
         "has_commitlint_dependency": "@commitlint/cli" in deps or "commitlint" in deps,
         "has_husky": "husky" in deps or exists(repo, ".husky"),
         "has_lint_staged": "lint-staged" in deps or "lint-staged" in package,
+        "runtime_dependencies": sorted(runtime_deps.keys()),
+        "dev_dependencies": sorted(dev_deps.keys()),
+        "misplaced_dev_dependencies": sorted(
+            name for name in runtime_deps if is_node_dev_tool_package(name)
+        ),
         "tools": sorted(
             name for name in [
                 "typescript",
@@ -299,6 +341,23 @@ def package_state(repo: Path) -> dict[str, Any]:
             ]
             if name in deps
         ),
+    }
+
+
+def python_dependency_state(repo: Path) -> dict[str, Any]:
+    policy_text = read_text(repo / ".repo-policy.yml") if exists(repo, ".repo-policy.yml") else ""
+    has_runtime_requirements = exists(repo, "requirements.txt")
+    dev_files = [name for name in PYTHON_DEV_REQUIREMENT_FILES if exists(repo, name)]
+    uses_pip_requirements = (
+        has_runtime_requirements
+        or "package_manager: pip-requirements" in policy_text
+    )
+    return {
+        "uses_pip_requirements": uses_pip_requirements,
+        "has_requirements_txt": has_runtime_requirements,
+        "has_dev_requirements": bool(dev_files),
+        "dev_requirement_files": dev_files,
+        "missing_requirements_dev": uses_pip_requirements and not dev_files,
     }
 
 
@@ -539,6 +598,7 @@ def score_report(
     ai = state["ai"]
     wf = state["workflows"]
     pkg = state["package"]
+    pydeps = state["python_dependencies"]
     docs = state["docs"]
     changed = state["changed"]
     gi = state["gitignore"]
@@ -627,13 +687,29 @@ def score_report(
         if "build" not in pkg["scripts"]:
             score -= 2
             warnings.append("Node repo has no build script")
-        if not pkg["has_rulesync_dependency"]:
-            warnings.append(
-                "rulesync is not pinned as a devDependency; install it with "
-                "`npm install -D rulesync` or the equivalent package-manager command"
-            )
         if not pkg["has_nvmrc"]:
             warnings.append("Node repo missing `.nvmrc`; recommended but not yet required")
+        if pkg["misplaced_dev_dependencies"]:
+            warnings.append(
+                "Node dev tooling packages should be in devDependencies, not dependencies: "
+                + ", ".join(pkg["misplaced_dev_dependencies"])
+            )
+    if not pkg["has_rulesync_dependency"]:
+        if pkg["has_package_json"]:
+            warnings.append(
+                "Rulesync is mandatory but is not pinned in devDependencies; install it with "
+                "`npm install -D rulesync` or the equivalent package-manager command."
+            )
+        else:
+            warnings.append(
+                "Rulesync is mandatory but no tooling package.json pins it; non-Node repos "
+                "should add a private tooling-only package.json with rulesync in devDependencies."
+            )
+    if pydeps["missing_requirements_dev"]:
+        warnings.append(
+            "Python pip repo missing `requirements-dev.txt`; keep test/lint/coverage tools "
+            "separate from runtime `requirements.txt`."
+        )
     if not pkg["has_dependabot"]:
         warnings.append("Missing `.github/dependabot.yml`; recommended but not yet required")
     if not pkg["has_secret_scan_workflow"]:
@@ -729,6 +805,8 @@ def make_recommendations(
     changed = state["changed"]
     wf = state["workflows"]
     ai = state["ai"]
+    pkg = state["package"]
+    pydeps = state["python_dependencies"]
 
     if coverage_added_or_modified:
         recs.append("Remove generated coverage/build artifacts from the PR and add `coverage/` to `.gitignore`.")
@@ -744,13 +822,29 @@ def make_recommendations(
         recs.append("Open a separate dependency-audit PR; do not mix audit fixes into the standards PR.")
     if not wf["has_release_please"]:
         recs.append("If this repo ships releases, add Release Please in a follow-up PR.")
+    if pydeps["missing_requirements_dev"]:
+        recs.append(
+            "Add `requirements-dev.txt` with dev-only tools such as pytest, coverage, "
+            "ruff, and test helpers; keep runtime dependencies in `requirements.txt`."
+        )
+    if pkg["misplaced_dev_dependencies"]:
+        recs.append(
+            "Move Node tooling packages from `dependencies` to `devDependencies`: "
+            + ", ".join(pkg["misplaced_dev_dependencies"])
+        )
 
     if not ai["has_rulesync_config"]:
         recs.append("Add `rulesync.jsonc` from the standards template.")
     if not ai["has_rulesync_rules_dir"]:
         recs.append("Add `.rulesync/rules/*` as the canonical AI/editor source.")
     if ai["has_rulesync_config"] and not state["package"]["has_rulesync_dependency"]:
-        recs.append("Install Rulesync as a dev dependency, then run `npx rulesync generate`.")
+        if state["package"]["has_package_json"]:
+            recs.append("Install Rulesync as a dev dependency, then run `npx rulesync generate`.")
+        else:
+            recs.append(
+                "Add a private tooling-only `package.json`, install Rulesync in devDependencies, "
+                "then run `npm run rulesync`."
+            )
     if not ai["has_agents_md"]:
         recs.append("Run Rulesync and commit generated files.")
     if not ai["has_cursor_rules_dir"]:
@@ -836,6 +930,7 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
     policy_visibility, policy_license = _read_repo_policy_fields(repo)
     state = {
         "package": package_state(repo),
+        "python_dependencies": python_dependency_state(repo),
         "workflows": workflows_state(repo),
         "ai": ai_state(repo),
         "docs": docs_state(repo),

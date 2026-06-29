@@ -7,6 +7,11 @@ governance:
   pull_request_template: required
 package_manager: npm
 node_version: "24"
+dependency_standards:
+  runtime: dependencies
+  development: devDependencies
+  repo_tooling: devDependencies
+  policy: keep tooling packages out of runtime dependencies
 
 commands:
   install: npm ci

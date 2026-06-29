@@ -10,6 +10,10 @@ Use the repository package manager. Do not change package managers as part of un
 
 Node repositories must have a root `.nvmrc` file specifying the Node.js version.
 Use `.nvmrc` as the operational source of truth for local development and CI.
+Use `devDependencies` for development-only tooling such as TypeScript, ESLint,
+Prettier, Vitest/Jest/Mocha, coverage providers, Rulesync, Commitlint, Husky,
+and lint-staged. Keep runtime `dependencies` limited to packages needed by the
+application or library at runtime.
 
 Preferred checks:
 
