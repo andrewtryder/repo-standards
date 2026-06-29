@@ -34,6 +34,15 @@ GITIGNORE_MERGE_ENTRIES = [
     ".coverage",
 ]
 
+PYTHON_DEV_REQUIREMENT_FILES = (
+    "requirements-dev.txt",
+    "requirements-test.txt",
+    "requirements_test.txt",
+    "dev-requirements.txt",
+)
+
+DEFAULT_PYTHON_DEV_REQUIREMENTS = ("pytest", "coverage", "ruff")
+
 COPIED_WORKFLOWS = [
     "semantic-pull-request.yml",
     "ai-rules-check.yml",
@@ -615,6 +624,24 @@ def has_package_dependency(repo: Path, name: str) -> bool:
     return False
 
 
+def package_has_rulesync_script(repo: Path) -> bool:
+    scripts = load_package_scripts(repo)
+    return scripts.get("rulesync") == "rulesync generate"
+
+
+def tooling_package_json_content(repo: Path) -> str:
+    data = {
+        "private": True,
+        "scripts": {
+            "rulesync": "rulesync generate",
+        },
+        "devDependencies": {},
+    }
+    if repo.name:
+        data["name"] = repo.name
+    return json.dumps(data, indent=2, sort_keys=False) + "\n"
+
+
 def package_manager_for_repo(repo: Path, detection: dict[str, Any]) -> str:
     package_manager = detection.get("package_manager")
     if package_manager == "pnpm" or (repo / "pnpm-lock.yaml").is_file():
@@ -631,8 +658,6 @@ def package_manager_for_repo(repo: Path, detection: dict[str, Any]) -> str:
 
 
 def rulesync_install_command(repo: Path, detection: dict[str, Any]) -> list[str] | None:
-    if not (repo / "package.json").is_file():
-        return None
     package_manager = package_manager_for_repo(repo, detection)
     if package_manager == "pnpm":
         return ["pnpm", "add", "-D", "rulesync"]
@@ -654,10 +679,7 @@ def python_install_command(repo: Path, *, include_dev_tools: bool) -> str:
         name
         for name in (
             "requirements.txt",
-            "requirements-dev.txt",
-            "requirements-test.txt",
-            "requirements_test.txt",
-            "dev-requirements.txt",
+            *PYTHON_DEV_REQUIREMENT_FILES,
         )
         if (repo / name).is_file()
     ]
@@ -682,6 +704,18 @@ def python_install_command(repo: Path, *, include_dev_tools: bool) -> str:
         parts.extend(["pytest", "coverage", "ruff"])
 
     return " ".join(parts)
+
+
+def python_dev_requirements_content(repo: Path) -> str:
+    requirements = list(DEFAULT_PYTHON_DEV_REQUIREMENTS)
+    runtime_text = read_text(repo / "requirements.txt").lower() if (repo / "requirements.txt").is_file() else ""
+    if "fastapi" in runtime_text:
+        requirements.append("httpx")
+    return "\n".join(requirements) + "\n"
+
+
+def has_python_dev_requirements(repo: Path) -> bool:
+    return any((repo / name).is_file() for name in PYTHON_DEV_REQUIREMENT_FILES)
 
 
 def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
@@ -1582,15 +1616,22 @@ def plan_rulesync_install_recommendation(summary: MigrationSummary, repo: Path) 
         return
 
     command = rulesync_install_command_text(repo, summary.detection)
-    if command:
+    if summary.install_rulesync:
         summary.recommendations.append(
-            "Rulesync is not installed in this repository. "
+            "Rulesync install requested. Apply mode will pin Rulesync as repo tooling "
+            "before running Rulesync generation."
+        )
+        return
+    if (repo / "package.json").is_file():
+        summary.recommendations.append(
+            "Rulesync is mandatory but is not installed in this repository. "
             f"Install it with `{command}`, or rerun apply with `--install-rulesync`."
         )
     else:
         summary.recommendations.append(
-            "Rulesync is not installed in this repository. "
-            "Install it before running Rulesync generation."
+            "Rulesync is mandatory but is not installed in this repository. "
+            "For non-Node repos, use a tooling-only package.json; rerun apply "
+            "with `--install-rulesync` to create it and install Rulesync."
         )
 
 
@@ -1994,6 +2035,86 @@ def plan_nvmrc(
         summary.actions.append(Action("SKIP", rel, "Existing .nvmrc preserved."))
 
 
+def plan_python_dev_requirements(
+    summary: MigrationSummary,
+    repo: Path,
+    language: str,
+    mode: str,
+    adoption_level: str,
+) -> None:
+    if language != "python":
+        return
+    if summary.detection.get("package_manager") != "pip-requirements" and not (
+        repo / "requirements.txt"
+    ).is_file():
+        return
+    if has_python_dev_requirements(repo):
+        summary.actions.append(
+            Action("SKIP", "requirements-dev.txt", "Python dev requirements already present.")
+        )
+        return
+    if mode == "new" or adoption_level == "full":
+        summary.actions.append(
+            Action(
+                "CREATE",
+                "requirements-dev.txt",
+                "Add Python dev/test dependencies for pip requirements workflow.",
+            )
+        )
+    else:
+        summary.actions.append(
+            Action(
+                "WARN",
+                "requirements-dev.txt",
+                "Python pip repo should add requirements-dev.txt for test/lint/coverage tools.",
+            )
+        )
+        summary.recommendations.append(
+            "Add `requirements-dev.txt` for Python dev/test tools; baseline adoption preserves existing dependency files."
+        )
+
+
+def plan_rulesync_tooling_package(
+    summary: MigrationSummary,
+    repo: Path,
+    mode: str,
+    adoption_level: str,
+) -> None:
+    if has_package_dependency(repo, "rulesync"):
+        if package_has_rulesync_script(repo):
+            summary.actions.append(
+                Action("SKIP", "package.json", "Rulesync tooling is already pinned.")
+            )
+        return
+
+    if not (repo / "package.json").is_file():
+        if mode == "new" or adoption_level == "full" or summary.install_rulesync:
+            summary.actions.append(
+                Action(
+                    "CREATE",
+                    "package.json",
+                    "Create tooling-only package.json for mandatory Rulesync.",
+                )
+            )
+        else:
+            summary.actions.append(
+                Action(
+                    "WARN",
+                    "package.json",
+                    "Rulesync is mandatory; non-Node repos should add a tooling-only package.json.",
+                )
+            )
+        return
+
+    summary.actions.append(
+        Action(
+            "WARN",
+            "package.json",
+            "Rulesync is mandatory; add it to devDependencies.",
+        )
+    )
+
+
 def scan_protected_workflows(summary: MigrationSummary, repo: Path) -> None:
     workflows = repo / ".github" / "workflows"
     if not workflows.is_dir():
@@ -2034,6 +2155,7 @@ def build_plan(
     format_touched: bool,
     format_existing_docs: bool,
     add_license: bool,
+    install_rulesync: bool = False,
 ) -> MigrationSummary:
     detection = normalize_detection(repo, detect_repo(repo, standards))
     selected_profile = profile or detection["recommended_profile"]
@@ -2061,6 +2183,7 @@ def build_plan(
         format_touched=format_touched,
         format_existing_docs=format_existing_docs,
         add_license=add_license,
+        install_rulesync=install_rulesync,
     )
 
     summary.workflow_classifications = classify_all_workflows(repo)
@@ -2147,6 +2270,8 @@ def build_plan(
     )
 
     plan_nvmrc(summary, standards, repo, language, force)
+    plan_python_dev_requirements(summary, repo, language, mode, adoption_level)
+    plan_rulesync_tooling_package(summary, repo, mode, adoption_level)
     plan_gitignore_merge(summary, repo)
 
     if adoption_level == "full" or cleanup_generated_artifacts:
@@ -2218,6 +2343,8 @@ def build_analysis(
         summary.visibility_source = policy_fields.visibility_source
         summary.license_source = policy_fields.license_source
     plan_nvmrc(summary, standards, repo, language, force=False)
+    plan_python_dev_requirements(summary, repo, language, mode, "baseline")
+    plan_rulesync_tooling_package(summary, repo, mode, "baseline")
     plan_coverage_cleanup(summary, repo, cleanup=False)
     plan_agent_rule_migration(summary, repo, selected_rules, migrate=False)
     summary.add_license = add_license
@@ -2375,6 +2502,14 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
             execute_create_or_update(None, ci_content, target)
             continue
 
+        if action.path == "requirements-dev.txt":
+            execute_create_or_update(None, python_dev_requirements_content(repo), target)
+            continue
+
+        if action.path == "package.json":
+            execute_create_or_update(None, tooling_package_json_content(repo), target)
+            continue
+
         source = sources.get(action.path)
         if source is not None:
             execute_create_or_update(source, None, target)
@@ -2409,9 +2544,9 @@ def run_rulesync(repo: Path) -> tuple[bool, str]:
 
 
 def install_rulesync(repo: Path, detection: dict[str, Any]) -> tuple[bool, str]:
+    if not (repo / "package.json").is_file():
+        (repo / "package.json").write_text(tooling_package_json_content(repo), encoding="utf-8")
     command = rulesync_install_command(repo, detection)
-    if not command:
-        return False, "No package.json found; install Rulesync manually for this project type."
     try:
         completed = subprocess.run(
             command,
@@ -2956,11 +3091,11 @@ def main() -> int:
         format_touched=args.format_touched,
         format_existing_docs=args.format_existing_docs,
         add_license=args.add_license,
+        install_rulesync=args.install_rulesync,
     )
     summary.apply_mode = apply_mode
     summary.interactive = args.interactive
     summary.commit_requested = args.commit
-    summary.install_rulesync = args.install_rulesync
 
     if args.dry_run_ai_summary:
         safe = build_ai_safe_summary(summary, repo)
@@ -3027,11 +3162,11 @@ def main() -> int:
             format_touched=args.format_touched,
             format_existing_docs=args.format_existing_docs,
             add_license=args.add_license,
+            install_rulesync=args.install_rulesync,
         )
         summary.apply_mode = apply_mode
         summary.interactive = True
         summary.commit_requested = args.commit
-        summary.install_rulesync = args.install_rulesync
         summary.ai_assessment = summary.ai_assessment or None
 
     if apply_mode:

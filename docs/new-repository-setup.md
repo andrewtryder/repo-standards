@@ -65,6 +65,11 @@ Edit `.repo-policy.yml` to set:
 - The correct `commands` for your project
 - The correct `quality_gates`
 
+For new Python pip repositories, add `requirements-dev.txt` for development and
+test tools such as pytest, coverage, and Ruff. For JavaScript/TypeScript
+repositories, put tooling packages in `devDependencies`, not runtime
+`dependencies`.
+
 ## Step 4: Add `.nvmrc` (Node repos only)
 
 ```bash
@@ -75,10 +80,15 @@ Edit `.nvmrc` to specify your project's Node.js version (e.g., `24`).
 
 ## Step 5: Add Rulesync configuration
 
+Rulesync is required for all repositories. If this is not a Node/TypeScript
+project, add a private tooling-only `package.json` and pin Rulesync there; this
+does not make the application a JavaScript project.
+
 ```bash
 cp /path/to/repo-standards/templates/rulesync.jsonc .
 mkdir -p .rulesync/rules
 cp /path/to/repo-standards/ai/rules/*.md .rulesync/rules/
+npm install -D rulesync
 ```
 
 Customize the rules files for your project. At minimum, review:

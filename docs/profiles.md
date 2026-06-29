@@ -2,6 +2,12 @@
 
 A **profile** is a named starting point for `.repo-policy.yml`. It encodes typical language/runtime, deploy assumptions, default commands, and quality gates.
 
+Profiles also document dependency separation. Python pip profiles use
+`requirements.txt` for runtime dependencies and `requirements-dev.txt` for
+test/lint/coverage tooling. TypeScript profiles use package-manager-native
+`devDependencies` for tooling and keep runtime `dependencies` focused on
+production packages.
+
 For how documentation and AI/editor rules stay aligned, see [`ai-rules-maintenance.md`](ai-rules-maintenance.md).
 For file-pattern-aware tooling defaults, see [`code-quality-standards.md`](code-quality-standards.md).
 

@@ -8,6 +8,11 @@ governance:
 package_manager: mixed
 node_version: "24"
 python_version: "3.12"
+dependency_standards:
+  runtime: repo-specific
+  development: repo-specific
+  repo_tooling: package.json devDependencies for Rulesync when needed
+  policy: separate runtime dependencies from dev/test/tooling dependencies
 
 commands:
   install: echo "See repo-specific setup instructions"

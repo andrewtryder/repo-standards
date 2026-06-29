@@ -7,6 +7,9 @@ globs: ["**/*.py"]
 # Python Rules
 
 Use the existing dependency workflow unless the task explicitly migrates package management.
+For pip requirements repos, keep runtime dependencies in `requirements.txt` and
+put development-only tools in `requirements-dev.txt`. Dev-only tools include
+pytest, coverage, Ruff, and test helpers such as httpx for FastAPI tests.
 
 Preferred checks:
 

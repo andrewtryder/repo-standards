@@ -36,8 +36,32 @@ jobs:
         if: steps.node-version.outputs.has_nvmrc != 'true'
         with:
           node-version: "24"
+      - name: Install pinned Rulesync
+        shell: bash
+        run: |
+          if [[ ! -f package.json ]]; then
+            echo "No package.json found; falling back to ephemeral Rulesync."
+            exit 0
+          fi
+          if [[ -f pnpm-lock.yaml ]]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+          elif [[ -f yarn.lock ]]; then
+            corepack enable
+            yarn install --frozen-lockfile
+          elif [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            npm install
+          fi
       - name: Regenerate AI rules
-        run: npx -y rulesync generate
+        shell: bash
+        run: |
+          if [[ -f package.json ]]; then
+            npx rulesync generate
+          else
+            npx -y rulesync generate
+          fi
       - name: Fail if generated files are stale
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then

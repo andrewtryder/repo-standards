@@ -27,6 +27,25 @@ The baseline template includes:
 
 Python dependency update strategy (Dependabot for pip, or Renovate) is adopted repo-by-repo. The baseline Dependabot template includes a `pip` entry, but repos may need to adjust it for their specific requirements file layout.
 
+For pip requirements repositories, `requirements.txt` is the runtime dependency
+file and `requirements-dev.txt` is the standard development/test dependency
+file. Keep pytest, coverage, Ruff, and test helpers out of runtime requirements.
+New Python baselines should include `requirements-dev.txt`; existing migrations
+may adopt it in a follow-up PR if adding it would expand the standards change.
+
+### JavaScript and TypeScript dependencies
+
+For npm, pnpm, yarn, and bun repositories, `devDependencies` is the standard
+place for development-only tooling. Put TypeScript, ESLint, Prettier, Vitest,
+Jest, Mocha, coverage providers, Rulesync, Commitlint, Husky, lint-staged, and
+`@types/*` packages in `devDependencies`. Runtime `dependencies` should only
+contain packages needed by the app or library at runtime.
+
+Rulesync is mandatory even when the application is not JavaScript or
+TypeScript. Non-Node repos should keep Python/Ruby/etc. development tools in
+their native dev dependency mechanism, and use a private tooling-only
+`package.json` only for Node-based repository tools such as Rulesync.
+
 ### What Dependabot does NOT do
 
 - Dependabot does not run tests or verify compatibility. CI must catch that.

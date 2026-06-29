@@ -33,6 +33,12 @@ python3 /path/to/repo-standards/scripts/detect_repo_standard.py --repo .
 
 The detector is read-only and advisory. Use its output to choose a starting profile, then review `.repo-policy.yml` manually. See [`detection.md`](detection.md).
 
+Dependency separation is phased for existing repositories. Python pip repos
+without `requirements-dev.txt` receive a recommendation first; add the file in
+the standards PR only when doing a full adoption or when the change is already
+small and obvious. JavaScript/TypeScript repos should keep tooling packages in
+`devDependencies`; moving misplaced packages can be a follow-up dependency PR.
+
 If your repo deploys to Cloudflare, Fly.io, GCP, or Railway, read the matching deployment guide before migration:
 
 - [`deployment/cloudflare.md`](deployment/cloudflare.md)
@@ -60,6 +66,10 @@ Use `--apply` to write safe changes. The script skips existing files by default,
 Use `--analyze-existing` to inspect generated AI/editor outputs, deploy workflows, and coverage artifacts before applying. Use `--adoption-level` (`baseline`, `checks`, `reusable-ci`, `full`) and `--rules-strategy profile` for safer migrations. Use `--interactive` for confirmation prompts. See [`using-repo-standards.md`](using-repo-standards.md#one-command-apply) and [`github-models-migration.md`](github-models-migration.md).
 
 The apply script adds `.editorconfig` when missing, warns (but does not create) a missing `LICENSE` when policy requires one, and copies migration-friendly `docs-check.yml` / `secret-scan.yml` workflows. For private repositories, pass `--visibility private --license proprietary` so generated `.repo-policy.yml` does not default to public MIT. For public MIT repos, pass `--add-license` to create `LICENSE` intentionally.
+
+Rulesync is mandatory across languages. For non-Node repositories, full adoption
+or `--install-rulesync` may create a private tooling-only `package.json` to pin
+Rulesync without changing the application runtime.
 
 ## Step 3: Run the assessor (baseline)
 
