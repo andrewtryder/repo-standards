@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/andrewtryder/repo-standards/compare/v1.3.0...v1.4.0) (2026-06-30)
+
+
+### Features
+
+* **apply:** add Release Please to standards migrations ([dde225b](https://github.com/andrewtryder/repo-standards/commit/dde225b5b126264629f888e395a1f30962dfac35))
+* **apply:** add Release Please to standards migrations ([e7a95bb](https://github.com/andrewtryder/repo-standards/commit/e7a95bb02672901364a64204a7c02d9344d7968d))
+* **standards:** detect fly deployments ([e5705b1](https://github.com/andrewtryder/repo-standards/commit/e5705b12fec3cdba27c5e7ca2db9885216b27a64))
+* **standards:** improve adoption workflow ([#35](https://github.com/andrewtryder/repo-standards/issues/35)) ([6bbab0a](https://github.com/andrewtryder/repo-standards/commit/6bbab0a4b861ed3981250cebd7e5e8f80d931d8f))
+* **standards:** improve adoption workflow and dependency separation ([97971b9](https://github.com/andrewtryder/repo-standards/commit/97971b9d11bcf329ba97a179abcfe99f78a3a620))
+* **standards:** separate runtime and dev dependencies ([57f77a4](https://github.com/andrewtryder/repo-standards/commit/57f77a455370eef3ca53db891e5566888206b420))
+
 ## [1.3.0](https://github.com/andrewtryder/repo-standards/compare/v1.2.0...v1.3.0) (2026-06-27)
 
 
