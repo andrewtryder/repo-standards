@@ -365,6 +365,83 @@ class ApplyRepoStandardsTests(unittest.TestCase):
                 )
             )
 
+    def test_existing_dev_requirements_missing_coverage_merges(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            write(repo / "requirements.txt", "fastapi\n")
+            write(repo / "requirements-dev.txt", "-r requirements.txt\n\npytest\nruff\n")
+            write(repo / "main.py", "print('hello')\n")
+
+            summary = build_plan(
+                repo,
+                ROOT,
+                mode="existing",
+                profile="python-service",
+                workflow_strategy="none",
+                rules_strategy="profile",
+                adoption_level="reusable-ci",
+                update_existing=False,
+                force=False,
+                allow_generated_output_rewrite=False,
+                cleanup_generated_artifacts=False,
+                replace_check_workflows=False,
+                migrate_existing_agent_rules=False,
+                for_apply=True,
+                will_run_rulesync=False,
+                policy_fields=PolicyFields("private", "proprietary", "test", "test"),
+                format_touched=False,
+                format_existing_docs=False,
+                add_license=False,
+            )
+
+            self.assertTrue(
+                any(
+                    action.action == "MERGE"
+                    and action.path == "requirements-dev.txt"
+                    and "coverage" in action.detail
+                    for action in summary.actions
+                )
+            )
+
+    def test_python_service_adoption_creates_release_please(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            write(repo / "requirements.txt", "fastapi\n")
+            write(repo / "main.py", "print('hello')\n")
+
+            summary = build_plan(
+                repo,
+                ROOT,
+                mode="existing",
+                profile="python-service",
+                workflow_strategy="reusable",
+                rules_strategy="profile",
+                adoption_level="reusable-ci",
+                update_existing=False,
+                force=False,
+                allow_generated_output_rewrite=False,
+                cleanup_generated_artifacts=False,
+                replace_check_workflows=False,
+                migrate_existing_agent_rules=False,
+                for_apply=True,
+                will_run_rulesync=False,
+                policy_fields=PolicyFields("public", "MIT", "test", "test"),
+                format_touched=False,
+                format_existing_docs=False,
+                add_license=False,
+            )
+
+            self.assertTrue(
+                any(
+                    action.action == "CREATE"
+                    and action.path == ".github/workflows/release-please.yml"
+                    for action in summary.actions
+                )
+            )
+            self.assertTrue(
+                any(action.action == "CREATE" and action.path == "CHANGELOG.md" for action in summary.actions)
+            )
+
     def test_full_python_adoption_creates_tooling_package_for_rulesync(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)

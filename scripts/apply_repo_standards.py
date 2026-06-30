@@ -25,6 +25,22 @@ from detect_repo_standard import (  # noqa: E402
     detect_repo,
     recommended_templates,
 )
+from python_dev_requirements import (  # noqa: E402
+    PYTHON_DEV_REQUIREMENT_FILES,
+    has_python_dev_requirements,
+    merge_python_dev_requirements_text,
+    missing_python_dev_packages,
+    primary_python_dev_requirements_path,
+    python_dev_requirements_content,
+)
+from release_please_workflow import (  # noqa: E402
+    DEFAULT_CHANGELOG,
+    RELEASE_PLEASE_WORKFLOW_REL,
+    has_release_please_workflow,
+    release_please_enabled_for_repo,
+    release_please_template_path,
+    uses_simple_release_template,
+)
 
 ActionType = Literal["CREATE", "UPDATE", "SKIP", "MERGE", "WARN", "BLOCK"]
 
@@ -33,15 +49,6 @@ GITIGNORE_MERGE_ENTRIES = [
     "htmlcov/",
     ".coverage",
 ]
-
-PYTHON_DEV_REQUIREMENT_FILES = (
-    "requirements-dev.txt",
-    "requirements-test.txt",
-    "requirements_test.txt",
-    "dev-requirements.txt",
-)
-
-DEFAULT_PYTHON_DEV_REQUIREMENTS = ("pytest", "coverage", "ruff")
 
 COPIED_WORKFLOWS = [
     "semantic-pull-request.yml",
@@ -704,18 +711,6 @@ def python_install_command(repo: Path, *, include_dev_tools: bool) -> str:
         parts.extend(["pytest", "coverage", "ruff"])
 
     return " ".join(parts)
-
-
-def python_dev_requirements_content(repo: Path) -> str:
-    requirements = list(DEFAULT_PYTHON_DEV_REQUIREMENTS)
-    runtime_text = read_text(repo / "requirements.txt").lower() if (repo / "requirements.txt").is_file() else ""
-    if "fastapi" in runtime_text:
-        requirements.append("httpx")
-    return "\n".join(requirements) + "\n"
-
-
-def has_python_dev_requirements(repo: Path) -> bool:
-    return any((repo / name).is_file() for name in PYTHON_DEV_REQUIREMENT_FILES)
 
 
 def infer_commands(repo: Path, detection: dict[str, Any]) -> dict[str, str]:
@@ -2003,6 +1998,54 @@ def plan_workflows(
                 break
 
 
+def plan_release_please(
+    summary: MigrationSummary,
+    standards: Path,
+    repo: Path,
+    *,
+    selected_profile: str,
+    language: str,
+    workflow_strategy: str,
+) -> None:
+    if workflow_strategy == "none":
+        return
+    if not release_please_enabled_for_repo(
+        repo,
+        standards,
+        selected_profile=selected_profile,
+        rendered_policy=summary.rendered_repo_policy,
+    ):
+        return
+    if has_release_please_workflow(repo):
+        add_action(
+            summary,
+            Action("SKIP", RELEASE_PLEASE_WORKFLOW_REL, "Existing Release Please workflow preserved."),
+        )
+        return
+
+    policy_text = summary.rendered_repo_policy or read_text(repo / ".repo-policy.yml")
+    template = release_please_template_path(
+        standards,
+        repo,
+        selected_profile=selected_profile,
+        language=language,
+        policy_text=policy_text,
+    )
+    add_action(
+        summary,
+        Action(
+            "CREATE",
+            RELEASE_PLEASE_WORKFLOW_REL,
+            f"From {template.name} (release_please enabled in policy).",
+        ),
+    )
+    if uses_simple_release_template(template) and not (repo / "CHANGELOG.md").is_file():
+        add_action(
+            summary,
+            Action("CREATE", "CHANGELOG.md", "Starter changelog for Release Please simple strategy."),
+        )
+
+
 def plan_nvmrc(
     summary: MigrationSummary,
     standards: Path,
@@ -2049,9 +2092,22 @@ def plan_python_dev_requirements(
     ).is_file():
         return
     if has_python_dev_requirements(repo):
-        summary.actions.append(
-            Action("SKIP", "requirements-dev.txt", "Python dev requirements already present.")
-        )
+        dev_path = primary_python_dev_requirements_path(repo)
+        assert dev_path is not None
+        missing = missing_python_dev_packages(repo, dev_path)
+        rel = dev_path.relative_to(repo).as_posix()
+        if missing:
+            summary.actions.append(
+                Action(
+                    "MERGE",
+                    rel,
+                    f"Add missing Python dev packages: {', '.join(missing)}",
+                )
+            )
+        else:
+            summary.actions.append(
+                Action("SKIP", rel, "Python dev requirements already present.")
+            )
         return
     if mode == "new" or adoption_level == "full":
         summary.actions.append(
@@ -2256,6 +2312,15 @@ def build_plan(
         language,
         update_existing,
         force,
+    )
+
+    plan_release_please(
+        summary,
+        standards,
+        repo,
+        selected_profile=selected_profile,
+        language=language,
+        workflow_strategy=effective_strategy,
     )
 
     plan_check_workflow_replacement(
@@ -2504,6 +2569,31 @@ def apply_actions(summary: MigrationSummary, standards: Path, repo: Path) -> Non
 
         if action.path == "requirements-dev.txt":
             execute_create_or_update(None, python_dev_requirements_content(repo), target)
+            continue
+
+        if action.path == RELEASE_PLEASE_WORKFLOW_REL:
+            policy_text = summary.rendered_repo_policy or read_text(repo / ".repo-policy.yml")
+            template = release_please_template_path(
+                standards,
+                repo,
+                selected_profile=summary.profile,
+                language=summary.detection.get("language"),
+                policy_text=policy_text,
+            )
+            if template.is_file():
+                execute_create_or_update(template, None, target)
+            continue
+
+        if action.path == "CHANGELOG.md" and action.action == "CREATE":
+            execute_create_or_update(None, DEFAULT_CHANGELOG, target)
+            continue
+
+        if action.action == "MERGE" and action.path in PYTHON_DEV_REQUIREMENT_FILES:
+            dev_target = repo / action.path
+            if dev_target.is_file():
+                missing = missing_python_dev_packages(repo, dev_target)
+                merged = merge_python_dev_requirements_text(read_text(dev_target), missing)
+                execute_create_or_update(None, merged, dev_target)
             continue
 
         if action.path == "package.json":

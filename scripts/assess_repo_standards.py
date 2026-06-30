@@ -23,6 +23,15 @@ from pathlib import Path
 from typing import Any
 
 from check_code_quality_standards import analyze_repo as analyze_code_quality
+from python_dev_requirements import (
+    PYTHON_DEV_REQUIREMENT_FILES,
+    missing_python_dev_packages,
+    primary_python_dev_requirements_path,
+)
+from release_please_workflow import (
+    has_release_please_workflow,
+    parse_release_please_enabled,
+)
 
 
 COVERAGE_ARTIFACT_RE = re.compile(
@@ -197,13 +206,6 @@ def read_json(path: Path) -> dict[str, Any]:
         return {}
 
 
-PYTHON_DEV_REQUIREMENT_FILES = (
-    "requirements-dev.txt",
-    "requirements-test.txt",
-    "requirements_test.txt",
-    "dev-requirements.txt",
-)
-
 NODE_DEV_TOOL_PACKAGES = {
     "@commitlint/cli",
     "@commitlint/config-conventional",
@@ -352,12 +354,17 @@ def python_dependency_state(repo: Path) -> dict[str, Any]:
         has_runtime_requirements
         or "package_manager: pip-requirements" in policy_text
     )
+    dev_path = primary_python_dev_requirements_path(repo)
+    missing_dev_packages = (
+        missing_python_dev_packages(repo, dev_path) if dev_path is not None else []
+    )
     return {
         "uses_pip_requirements": uses_pip_requirements,
         "has_requirements_txt": has_runtime_requirements,
         "has_dev_requirements": bool(dev_files),
         "dev_requirement_files": dev_files,
         "missing_requirements_dev": uses_pip_requirements and not dev_files,
+        "missing_dev_packages": missing_dev_packages,
     }
 
 
@@ -584,6 +591,16 @@ def check_gitignore_excludes_env(repo: Path) -> bool:
     return excludes_env and excludes_env_star and not excludes_example
 
 
+def release_state(repo: Path) -> dict[str, Any]:
+    policy_text = read_text(repo / ".repo-policy.yml") if exists(repo, ".repo-policy.yml") else ""
+    policy_enabled = parse_release_please_enabled(policy_text)
+    has_workflow = has_release_please_workflow(repo)
+    return {
+        "policy_release_please": policy_enabled,
+        "has_workflow": has_workflow,
+    }
+
+
 def score_report(
     state: dict[str, Any],
     command_analysis: dict[str, Any],
@@ -624,6 +641,14 @@ def score_report(
         if not ok:
             score -= 8
             blockers.append(msg)
+
+    release = state.get("release", {})
+    if release.get("policy_release_please") is True and not release.get("has_workflow"):
+        score -= 8
+        blockers.append(
+            "Missing Release Please workflow (.github/workflows/release-please.yml) "
+            "required by .repo-policy.yml"
+        )
 
     # Coverage changes: A/M is blocker, D is acceptable (warn if .gitignore missing)
     if coverage_added_or_modified:
@@ -709,6 +734,11 @@ def score_report(
         warnings.append(
             "Python pip repo missing `requirements-dev.txt`; keep test/lint/coverage tools "
             "separate from runtime `requirements.txt`."
+        )
+    if pydeps["missing_dev_packages"]:
+        warnings.append(
+            "Python dev requirements file is missing repo-standards tooling packages: "
+            + ", ".join(pydeps["missing_dev_packages"])
         )
     if not pkg["has_dependabot"]:
         warnings.append("Missing `.github/dependabot.yml`; recommended but not yet required")
@@ -821,11 +851,19 @@ def make_recommendations(
     if command_analysis["npm_vulnerabilities"]:
         recs.append("Open a separate dependency-audit PR; do not mix audit fixes into the standards PR.")
     if not wf["has_release_please"]:
-        recs.append("If this repo ships releases, add Release Please in a follow-up PR.")
+        recs.append(
+            "If this repo ships releases, add Release Please via "
+            "`apply_repo_standards.py` or copy `templates/workflows/release-please.*.yml`."
+        )
     if pydeps["missing_requirements_dev"]:
         recs.append(
             "Add `requirements-dev.txt` with dev-only tools such as pytest, coverage, "
             "ruff, and test helpers; keep runtime dependencies in `requirements.txt`."
+        )
+    if pydeps["missing_dev_packages"]:
+        recs.append(
+            "Add missing dev packages to `requirements-dev.txt`: "
+            + ", ".join(pydeps["missing_dev_packages"])
         )
     if pkg["misplaced_dev_dependencies"]:
         recs.append(
@@ -931,6 +969,7 @@ def assess(repo: Path, standards: Path, base_ref: str | None, run_safe_checks: b
     state = {
         "package": package_state(repo),
         "python_dependencies": python_dependency_state(repo),
+        "release": release_state(repo),
         "workflows": workflows_state(repo),
         "ai": ai_state(repo),
         "docs": docs_state(repo),
