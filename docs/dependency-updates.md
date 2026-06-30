@@ -30,8 +30,10 @@ Python dependency update strategy (Dependabot for pip, or Renovate) is adopted r
 For pip requirements repositories, `requirements.txt` is the runtime dependency
 file and `requirements-dev.txt` is the standard development/test dependency
 file. Keep pytest, coverage, Ruff, and test helpers out of runtime requirements.
-New Python baselines should include `requirements-dev.txt`; existing migrations
-may adopt it in a follow-up PR if adding it would expand the standards change.
+New Python baselines should include `requirements-dev.txt` with at least
+`pytest`, `coverage`, and `ruff`. When adopting repo-standards on an existing
+repo, `apply_repo_standards.py` merges any missing dev packages into the file
+instead of skipping it.
 
 ### JavaScript and TypeScript dependencies
 

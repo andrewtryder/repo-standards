@@ -66,9 +66,11 @@ Edit `.repo-policy.yml` to set:
 - The correct `quality_gates`
 
 For new Python pip repositories, add `requirements-dev.txt` for development and
-test tools such as pytest, coverage, and Ruff. For JavaScript/TypeScript
-repositories, put tooling packages in `devDependencies`, not runtime
-`dependencies`.
+test tools such as pytest, coverage, and Ruff. Start from
+`configs/python/requirements-dev.txt` in repo-standards. When adopting standards
+on an existing repo, `apply_repo_standards.py` merges any missing dev packages
+into the file. For JavaScript/TypeScript repositories, put tooling packages in
+`devDependencies`, not runtime `dependencies`.
 
 ## Step 4: Add `.nvmrc` (Node repos only)
 

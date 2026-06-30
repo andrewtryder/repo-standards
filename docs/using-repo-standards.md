@@ -161,7 +161,7 @@ python3 "$REPO_STANDARDS/scripts/apply_repo_standards.py" \
 
 See [`github-models-migration.md`](github-models-migration.md). AI assessment is advisory and never applies changes directly.
 
-The apply script does not change deploy workflows, release workflows, package manager files, or application source. Review `.repo-policy.yml` after apply.
+The apply script does not change deploy workflows or custom existing release workflows. When `.repo-policy.yml` enables `release_please`, apply adds `.github/workflows/release-please.yml` (and a starter `CHANGELOG.md` for the simple strategy when missing). It does not change package manager files or application source. Review `.repo-policy.yml` after apply.
 
 Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existing generated agent/editor files. Use `--migrate-existing-agent-rules` to copy repo-specific generated rules into `.rulesync/rules/` first.
 
@@ -170,7 +170,7 @@ Use `--allow-generated-output-rewrite` when you accept Rulesync deleting existin
 - **Secret scan** (`secret-scan.yml`) uses only `extra_args: --results=verified`. Do not add `--no-update` or `--fail`; TruffleHog v3.95.3 provides those internally.
 - **Docs check** (`docs-check.yml`) requires core standards files (`README.md`, `.repo-policy.yml`, `AGENTS.md`, `CONTRIBUTING.md`, PR template, `.gitignore`). `LICENSE`, `.editorconfig`, `.env.example`, and `SECURITY.md` are recommended warnings only. Open-source licenses declared in `.repo-policy.yml` trigger a warning when `LICENSE`/`LICENSE.md` is missing.
 - **README concepts** are warning-only unless the repo sets `DOCS_CHECK_STRICT=true` as a GitHub Actions variable.
-- **`.editorconfig`** is added by the apply script when missing.
+- **Release Please** — when `release.release_please: true` in policy, apply adds `.github/workflows/release-please.yml` using the profile-appropriate template (`simple`, `node`, or `manifest`). Existing `release-please` workflows are preserved.
 - **License** is never created automatically. The apply script warns when `.repo-policy.yml` declares an open-source license but no license file exists. Use `--add-license` to intentionally create a MIT `LICENSE` for new public repositories.
 - **`rulesync.jsonc`** is copied in Prettier-compatible format. Use `--format-touched` after apply to format migration-touched files, or `--format-existing-docs` when existing Markdown (such as `CHANGELOG.md`) fails Prettier checks.
 - **Visibility and license** default to `private`/`proprietary` for existing repos when not inferred. Override with `--visibility` and `--license`, or rely on existing `.repo-policy.yml` / GitHub metadata when available.
