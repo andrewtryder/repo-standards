@@ -1,3 +1,5 @@
+NOTE: Paused for now as I feel tooling is changing so fast here, there's not an easy way for me to maintain this to where I want to use it in all of my work.
+
 # Repo Standards
 
 [![Standards Repo CI](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml/badge.svg)](https://github.com/andrewtryder/repo-standards/actions/workflows/standards-repo-ci.yml)
